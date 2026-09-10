@@ -84,6 +84,16 @@ export const DEPLOY = {
        （原主钥匙 sk-53c908… 已作废，如仍在使用请去后台删除。） */
   ],
 
+  /* ── 账户云端同步（Supabase）────────────────
+     publishableKey 是「可以公开」的钥匙——它本来就设计成
+     放进网页里；真正的防线是数据库的行级安全（RLS）：
+     每个用户只能读写自己的那一行。
+     ⚠️ 千万不要把 sb_secret_ 开头的那把放进来。 */
+  supabase: {
+    url: 'https://pkotlnttjilqfyaiwram.supabase.co',
+    publishableKey: 'sb_publishable_AgqKqpuCnIvV-enumiSBeQ_iB8uhGpi',
+  },
+
   /* 访客第一次打开时，是否替他接上（钥匙留在配置文件里，不进他的浏览器） */
   autoConnect: true,
 };

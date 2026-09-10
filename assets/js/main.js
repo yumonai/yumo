@@ -10,6 +10,7 @@ import { renderGarden } from './garden.js';
 import { renderMirror } from './mirror.js';
 import { DEPLOY, hasDeployKey } from './config.js';
 import * as ai from './ai.js';
+import * as account from './account.js';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -723,6 +724,53 @@ function rowToggle(label, desc, key) {
   </div>`;
 }
 
+function accountCardHtml() {
+  if (!account.enabled) return '';
+  if (account.isSignedIn()) {
+    const u = account.currentUser();
+    return `
+    <div class="card card--plain">
+      <div class="card__label">账户</div>
+      <p class="pay-intro">已登录 <b>${escapeHtml(u.email)}</b>。这片水跟着你的账号走——换台设备，它还记得你。</p>
+      <div class="acct">
+        <p class="acct__sync" id="acct-sync-state">正在看云端…</p>
+        <div class="field-row">
+          <button class="btn-ghost" id="acct-sync" type="button">立即同步</button>
+          <button class="btn-ghost" id="acct-out" type="button">退出登录</button>
+        </div>
+        <button class="btn-ghost btn-danger acct__del" id="acct-del" type="button">彻底注销，并删掉云端的一切</button>
+        <p class="acct__msg" id="acct-msg"></p>
+      </div>
+    </div>`;
+  }
+  return `
+    <div class="card card--plain">
+      <div class="card__label">账户</div>
+      <p class="pay-intro">把这片水记在云端——换台设备，它还记得你。只有你能看到，别人翻不到。</p>
+      <div class="acct">
+        <input class="field" id="acct-email" type="email" placeholder="邮箱" autocomplete="email" />
+        <input class="field" id="acct-pass" type="password" placeholder="密码（至少 6 位）" autocomplete="current-password" />
+        <div class="field-row">
+          <button class="btn-ghost" id="acct-in" type="button">登 录</button>
+          <button class="btn-ghost" id="acct-up" type="button">注册新账户</button>
+        </div>
+        <p class="acct__msg" id="acct-msg"></p>
+      </div>
+    </div>`;
+}
+
+async function runAccountAction(fn, msgEl, okText) {
+  try {
+    msgEl.textContent = '正在…';
+    await fn();
+    msgEl.textContent = okText || '';
+    msgEl.classList.add('is-ok');
+  } catch (e) {
+    msgEl.textContent = e.message || '出了点状况。';
+    msgEl.classList.remove('is-ok');
+  }
+}
+
 function paintSettings() {
   const live = ai.isConnected();
   el.settingsBody.innerHTML = `
@@ -752,6 +800,8 @@ function paintSettings() {
         <button class="btn-ghost btn-danger" id="btn-wipe" type="button">清空这片水</button>
       </div>
     </div>
+
+    ${accountCardHtml()}
 
     <div class="card card--plain">
       <div class="card__label">赞助</div>
@@ -803,6 +853,56 @@ function paintSettings() {
   $$('.pay img').forEach((img) => {
     img.addEventListener('click', () => openPayZoom(img.getAttribute('src'), img.getAttribute('alt')));
   });
+
+  // 账户：登录 / 注册 / 同步 / 退出 / 注销
+  if (account.enabled) {
+    const msg = $('#acct-msg');
+    const say = (t, ok = false) => { if (!msg) return; msg.textContent = t || ''; msg.classList.toggle('is-ok', ok); };
+    const busy = (on) => $$('#acct-in,#acct-up,#acct-out,#acct-del,#acct-sync').forEach((b) => { if (b) b.disabled = on; });
+    const guard = () => {
+      const email = $('#acct-email')?.value.trim() || '';
+      const pass = $('#acct-pass')?.value || '';
+      if (!/^\S+@\S+\.\S+$/.test(email)) { say('邮箱看起来不太对。'); return null; }
+      if (pass.length < 6) { say('密码至少 6 位。'); return null; }
+      return { email, pass };
+    };
+
+    $('#acct-in')?.addEventListener('click', async () => {
+      const c = guard(); if (!c) return;
+      busy(true); say('正在开门…');
+      try { await account.signIn(c.email, c.pass); await account.syncAll(); paintSettings(); }
+      catch (e) { say(e.message); } finally { busy(false); }
+    });
+
+    $('#acct-up')?.addEventListener('click', async () => {
+      const c = guard(); if (!c) return;
+      busy(true); say('正在为你准备一片新的水…');
+      try { await account.signUp(c.email, c.pass); await account.syncAll(); paintSettings(); }
+      catch (e) { say(e.message); } finally { busy(false); }
+    });
+
+    $('#acct-sync')?.addEventListener('click', async () => {
+      const st = $('#acct-sync-state');
+      busy(true); if (st) st.textContent = '正在同步…';
+      try {
+        const r = await account.syncAll();
+        if (st) st.textContent = `刚刚同步过 · 从云端拿回 ${r.pulled.length} 类，推上去 ${r.pushed.length} 类`;
+      } catch (e) { if (st) st.textContent = '同步没成：' + e.message; }
+      finally { busy(false); }
+    });
+
+    $('#acct-out')?.addEventListener('click', async () => {
+      busy(true);
+      try { await account.signOut(); paintSettings(); } finally { busy(false); }
+    });
+
+    $('#acct-del')?.addEventListener('click', async () => {
+      if (!confirm('这一步会把云端账号和存在那边的所有东西一起删掉，找不回来。\n你手机/电脑浏览器里本地的记录不会被删。\n\n真的要这么做吗？')) return;
+      busy(true);
+      try { await account.deleteAccount(); paintSettings(); }
+      catch (e) { say(e.message); } finally { busy(false); }
+    });
+  }
 }
 
 /** 把收款码放成全屏，方便长按保存 */
@@ -990,4 +1090,4 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-window.__yumo = { store, ai, sound, sea, navigate, whisper };
+window.__yumo = { store, ai, sound, sea, navigate, whisper, account };
