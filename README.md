@@ -45,12 +45,17 @@
 
 `assets/js/config.js` 里放着一份**通道列表**，按顺序尝试：
 
-| 顺序 | 通道 | 状态 |
-|---|---|---|
-| 1 | 智谱 **GLM-4.7-Flash** | 已预置，**等填钥匙**（官方标注永久免费） |
-| 2 | 火山引擎豆包 | 已预置，等填钥匙（`model` 要填控制台里的接入点 ID） |
-| 3 | 硅基流动 | 已预置，等填钥匙（9B 以下永久免费） |
-| 4 | DeepSeek **deepseek-flash** | **已配好，兜底** |
+| 顺序 | 通道 | 模型 | 状态 |
+|---|---|---|---|
+| 1 | 智谱 GLM | `glm-4-flash-250414`（看图 `glm-4v-flash`） | ✅ **主力，免费** |
+| 2 | 火山引擎豆包 | 待定 | 空槽，填钥匙即启用（`model` 要填接入点 ID） |
+| 3 | 硅基流动 | `Qwen/Qwen3-8B` | 空槽，9B 以下永久免费 |
+| 4 | DeepSeek | `deepseek-flash` | 保命兜底，GLM 正常时不产生费用 |
+
+> ⚠️ **别把主力换成 `glm-4.7-flash`。** 它是思考模型：推理也计入 `max_tokens`，
+> 实测 300 个额度全花在思考上、`content` 返回空；而且免费档连打 6 次全被限流。
+> 同理，智谱视觉模型只收 `max_tokens ≤ 1024`，所以 `PROVIDERS` 里配了 `maxTokens: 1024`。
+> 换模型前请先读 `../yumo-规划/04-免费模型API选型.md` 第八节。
 
 - **哪一条的 `apiKey` 是空的就跳过哪一条**——所以现在没配的那几条放着不动，完全不影响运行
 - 顺序即优先级，想让谁当主力就往前排
@@ -74,10 +79,12 @@ export const DEPLOY = {
     {
       name: 'glm',
       baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-      model: 'glm-4.7-flash',         // 官方文档标注免费，200K 上下文
-      visionModel: 'glm-4.6v-flash',  // 带了图自动换这个，同样免费
-      apiKey: '',                     // ← 填这里，填上后自动成为主力
+      model: 'glm-4-flash-250414',    // 官方标注免费，实测中位 1.8 秒
+      visionModel: 'glm-4v-flash',    // 带了图自动换这个，实测 0.6 秒
+      apiKey: '',                    // 已填
       vision: true,
+      noThink: true,                  // 思考型模型会返回空正文，必须显式关掉
+      maxTokens: 1024,                // ⚠️ 智谱视觉模型只收 1~1024
     },
     // …火山 / 硅基流动 / DeepSeek
   ],
@@ -105,6 +112,9 @@ export const DEPLOY = {
 > - `api.siliconflow.cn/v1` ✅ `access-control-allow-origin: *`，**可直连**
 > - `api.cloudflare.com/.../ai/run/...` ❌ 预检 405，**必须经 Worker 转发**
 > - `generativelanguage.googleapis.com` ❌ 中国大陆网络不通，等于是不能用
+>
+> 智谱免费档的限流码：`1305` 访问量过大、`1302` 速率限制（都映射成 HTTP 429，
+> 会被自动降级）；`1210` 参数非法——**视觉模型 `max_tokens` 超 1024 就是这个码**。
 >
 > 因此**纯静态站点可以直接调用国内这几家，不需要代理**。若换成别的 OpenAI 兼容服务
 > 且它不支持 CORS，得自己加一层反向代理，并把 `baseUrl` 指过去。
