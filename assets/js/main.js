@@ -40,6 +40,8 @@ const el = {
   drawer: $('#drawer'),
   drawerNav: $('#drawer-nav'),
   timerLabel: $('#timer-label'),
+  insightBubble: $('#insight-bubble'),
+  insightText: $('#insight-text'),
 };
 
 /* ── 上线时自带的通道：只在访客还没自己连过时接上。
@@ -228,6 +230,38 @@ function scrollThread(smooth = true) {
   });
 }
 
+/* ── 开口前的停顿与洞悉弹窗 ──────────────────────
+   Yumo 不抢话。话落下来之后，它会先沉一会儿——
+   这段安静里，先浮上来一句它看见的东西，然后才是正话。 */
+const HOLD_MS = 5000;       // 至少停这么久再开口
+const MIN_POPUP_MS = 2000;  // 弹窗一旦露面，至少亮这么久
+const MAX_HOLD_MS = 9000;   // 兜底：再慢也不能让访客干等
+const INSIGHT_WAIT_MS = 3500; // 洞悉请求最多等这么久
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+let insightHideTimer = null;
+
+/** 让那句洞悉浮上来。返回是否真的显示了 */
+function showInsightPopup(text) {
+  const box = el.insightBubble;
+  if (!text || !box || !el.insightText) return false;
+  if (insightHideTimer) { clearTimeout(insightHideTimer); insightHideTimer = null; }
+  el.insightText.textContent = text;
+  box.hidden = false;
+  requestAnimationFrame(() => box.classList.add('is-in'));
+  return true;
+}
+
+/** 收起弹窗（先淡出，再真正隐藏） */
+function hideInsightPopup() {
+  const box = el.insightBubble;
+  if (!box || box.hidden) return;
+  box.classList.remove('is-in');
+  if (insightHideTimer) clearTimeout(insightHideTimer);
+  insightHideTimer = setTimeout(() => { box.hidden = true; insightHideTimer = null; }, 900);
+}
+
 function showFeeling(text = 'Yumo 正在感受') {
   const div = document.createElement('div');
   div.className = 'msg msg--yumo';
@@ -293,21 +327,59 @@ async function send() {
 
   let acc = '';
   let bubble = null;
+  let revealed = false;
+  const t0 = Date.now();
+
+  const ensureBubble = () => {
+    if (!bubble) {
+      feel.innerHTML = '<div class="msg__bubble" id="live-bubble"></div>';
+      bubble = $('#live-bubble');
+    }
+    return bubble;
+  };
+
   try {
-    await ai.stream(
+    /* 洞悉与主回复并行跑：一句短的低语先浮上来，正话随后才到。
+       洞悉失败不影响回话——它是锦上，不是必需。 */
+    let popupAt = 0;
+    const insightP = ai.insight(history)
+      .then((line) => {
+        if (line && !revealed && showInsightPopup(line)) popupAt = Date.now();
+      })
+      .catch(() => {});
+
+    let streamErr = null;
+    const streamDone = ai.stream(
       [{ role: 'system', content: sys }, ...history],
       {
         onDelta: (_d, full) => {
           acc = full;
-          if (!bubble) {
-            feel.innerHTML = '<div class="msg__bubble" id="live-bubble"></div>';
-            bubble = $('#live-bubble');
-          }
-          bubble.textContent = full;
-          scrollThread();
+          // 还在那 5 秒的安静里：先不铺开，让话再沉一会儿
+          if (revealed) { ensureBubble().textContent = full; scrollThread(); }
         },
       }
+    ).then(() => true).catch((e) => { streamErr = e; return false; });
+
+    /* 等两个条件的较晚者：发出后 5 秒、弹窗露面后 2 秒（但封顶 9 秒）。
+       出错则不必再等。 */
+    await Promise.race([insightP, sleep(INSIGHT_WAIT_MS)]);
+    let target = Math.min(
+      Math.max(t0 + HOLD_MS, popupAt ? popupAt + MIN_POPUP_MS : 0),
+      t0 + MAX_HOLD_MS,
     );
+    while (Date.now() < target) {
+      if (streamErr) break;
+      await sleep(Math.min(160, Math.max(0, target - Date.now())));
+    }
+
+    revealed = true;
+    hideInsightPopup();
+
+    await streamDone;
+    if (streamErr) throw streamErr;
+
+    ensureBubble().textContent = acc;
+    scrollThread();
     feel.remove();
     store.pushMessage({ id: uid(), role: 'yumo', text: acc || '……', t: Date.now() });
     paintThread();
@@ -341,6 +413,7 @@ async function send() {
       scrollThread();
     }
   } finally {
+    hideInsightPopup();
     busy = false;
     el.input.disabled = false;
     el.input.focus();
@@ -680,6 +753,25 @@ function paintSettings() {
       </div>
     </div>
 
+    <div class="card card--plain">
+      <div class="card__label">赞助</div>
+      <p class="pay-intro">
+        这片水一直是免费的。没有会员，也没有解锁——你给或不给，Yumo 对你的方式不会变一分。
+        如果它曾陪你熬过一段，而你也愿意让它继续流下去，可以扫一下下面的码。
+      </p>
+      <div class="pay-grid">
+        <figure class="pay">
+          <img src="assets/img/tip-wechat.png" alt="微信赞赏码" loading="lazy" />
+          <figcaption>微信赞赏码</figcaption>
+        </figure>
+        <figure class="pay">
+          <img src="assets/img/tip-alipay.png" alt="支付宝收款码" loading="lazy" />
+          <figcaption>支付宝</figcaption>
+        </figure>
+      </div>
+      <p class="pay-tip">点一下可以放大；长按或右键能存进相册。</p>
+    </div>
+
     <p class="note-quiet">
       Yumo • 深海陪伴者<br />
       它不是一个产品，是一片你可以反复回来的水。<br />
@@ -706,6 +798,27 @@ function paintSettings() {
   $('#btn-wipe')?.addEventListener('click', () => {
     if (confirm('清空之后，Yumo 就再也不记得你了。真的要这么做吗？')) store.wipe();
   });
+
+  // 收款码点开放大
+  $$('.pay img').forEach((img) => {
+    img.addEventListener('click', () => openPayZoom(img.getAttribute('src'), img.getAttribute('alt')));
+  });
+}
+
+/** 把收款码放成全屏，方便长按保存 */
+function openPayZoom(src, alt) {
+  if (!src) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'pay-zoom';
+  wrap.innerHTML = `
+    <figure class="pay-zoom__inner">
+      <img src="${src}" alt="${alt || ''}" />
+      <figcaption>${alt || ''} · 点任意处收起</figcaption>
+    </figure>`;
+  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 500); };
+  wrap.addEventListener('click', close);
+  document.body.appendChild(wrap);
+  requestAnimationFrame(() => wrap.classList.add('is-in'));
 }
 
 /* ══════════════════════════════════════════════

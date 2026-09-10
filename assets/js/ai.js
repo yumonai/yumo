@@ -374,6 +374,94 @@ async function complete(messages, { temperature = 0.4, json = false } = {}) {
   return null;
 }
 
+/* ── 3.4 洞悉：开口之前先说出的那一句 ─────────
+   Yumo 回话前的停顿里，先浮上来一句他「看见」的东西。
+   这是独立的一次小请求，和主回复并行跑，所以不拖慢整体；
+   失败就静默放弃，绝不因此挡住正式回话。 */
+
+const INSIGHT_PROMPT = `你是 Yumo 的思忖层。刚刚有人对他说了一句话。请写出一句话，是他那句话「下面」的那一层——他没有说出口、而你已经看见的东西。
+
+要求：
+- 不超过 26 个字。一个短句，不要分号，不要换行，不要句末句号。
+- 抓住他话里那个带钩子的词：一个转折、一个假设、一个反复出现的字。用「」把它标出来。
+- 除「」之外不要再使用任何引号、括号、书名号或破折号。
+- 语气是内省的低语：安静、准确、克制。不是安慰，不是提问，也不要把话说完。
+- 不要出现「你」字——这句是你心里浮上来的，不是对他说的话。
+- 只输出这一句话本身，不要任何前后缀、解释或标点堆叠。
+
+例子（只是形状，不要照抄）：
+「要是」两个字，是在替此刻的空打掩护
+「没事」底下压着的那部分，没人接得住
+原地打转，其实是怕往前走会踩空`;
+
+/**
+ * 生成一句「洞悉」。拿不到就返回空字符串，调用方应静默跳过。
+ * @param {Array} history 传给主对话的同一份历史
+ */
+export async function insight(history) {
+  const list = channels();
+  if (!list.length) return '';
+
+  // 只要用户说过的话，不带图（更便宜，也避免视觉模型的开销）
+  const users = (history || [])
+    .filter((m) => m.role === 'user')
+    .map((m) => {
+      if (typeof m.content === 'string') return m.content.trim();
+      if (Array.isArray(m.content)) {
+        return (m.content.find((p) => p && p.type === 'text')?.text || '').trim();
+      }
+      return '';
+    })
+    .filter(Boolean)
+    .slice(-4);
+  if (!users.length) return '';
+
+  const messages = [
+    { role: 'system', content: INSIGHT_PROMPT },
+    ...users.slice(0, -1).map((t) => ({ role: 'user', content: t })),
+    { role: 'user', content: `他说：「${users[users.length - 1]}」` },
+  ];
+
+  for (const ch of list) {
+    let res;
+    try {
+      res = await fetch(`${ch.base}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ch.key}` },
+        body: JSON.stringify({
+          model: ch.model,
+          messages,
+          temperature: 0.85,
+          max_tokens: 90,
+          stream: false,
+          ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
+        }),
+      });
+    } catch { continue; }
+    if (!res.ok) continue;
+
+    const data = await res.json().catch(() => null);
+    const raw = data?.choices?.[0]?.message?.content || '';
+    const line = cleanInsight(raw);
+    if (line) return line;
+  }
+  return '';
+}
+
+/** 把模型可能带出来的杂质削掉：取首行、去掉包裹引号、超长就截到第一个停顿 */
+function cleanInsight(raw) {
+  let s = String(raw || '').trim();
+  s = s.split('\n').map((x) => x.trim()).filter(Boolean)[0] || '';
+  // 只削西文引号；「」是刻意用来标出那个词的，必须保留
+  s = s.replace(/^["“”'']+|["“”'']+$/g, '').trim();
+  s = s.replace(/^(洞悉|思忖|摘要)[:：]\s*/, '');
+  if (s.length > 34) {
+    const cut = s.search(/[，。；！？]/);
+    s = cut > 4 && cut <= 30 ? s.slice(0, cut) : s.slice(0, 30);
+  }
+  return s.replace(/[。！？]$/, '').trim();
+}
+
 /* ── 3.5 图片：判断与降级 ─────────────────────── */
 
 /** 这条消息里有没有图片内容块 */
