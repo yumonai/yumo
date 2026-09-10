@@ -27,10 +27,18 @@ export function onLetter(fn) { listeners.add(fn); fn(todayLetter()); return () =
 async function ensurePool() {
   if (pool) return pool;
   if (loading) return loading;
-  loading = fetch('assets/data/letters-pool.json', { cache: 'no-cache' })
-    .then((r) => r.json())
+  loading = fetch('assets/data/letters-pool.json?v=2', { cache: 'no-cache' })
+    .then((r) => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then((d) => { pool = d.items || []; return pool; })
-    .catch(() => { pool = []; return pool; })
+    .catch((e) => {
+      // 关键：失败不缓存。否则第一次没拿到（比如 CDN 还没同步），
+      // 之后每次点击都会拿到空池子，永远"内容池还没准备好"。
+      pool = null;
+      throw e;
+    })
     .finally(() => { loading = null; });
   return loading;
 }

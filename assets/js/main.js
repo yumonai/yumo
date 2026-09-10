@@ -816,13 +816,14 @@ function paintSettings() {
         这片水一直是免费的。没有会员，也没有解锁——你给或不给，Yumo 对你的方式不会变一分。
         如果它曾陪你熬过一段，而你也愿意让它继续流下去。
       </p>
-      <button class="btn-ghost pay-btn" id="btn-pay" type="button">赞助 YUMO</button>
-      <p class="pay-tip">点开后选择你方便的方式；长按或右键能存下码。</p>
+      <div class="field-row pay-actions">
+        <button class="btn-ghost pay-btn" id="btn-pay" type="button">赞助 YUMO</button>
+        <button class="btn-ghost" id="btn-contact" type="button">联系 YUMO</button>
+      </div>
     </div>
 
     <p class="note-quiet">
-      Yumo • 深海陪伴者<br />
-      它不是一个产品，是一片你可以反复回来的水。
+      Yumo • 深海陪伴者
     </p>
   `;
 
@@ -853,6 +854,9 @@ function paintSettings() {
       openPayZoom(b.dataset.src, b.dataset.alt);
     });
   });
+
+  // 联系 YUMO：弹出邮箱
+  $('#btn-contact')?.addEventListener('click', () => openContact());
 
   // 账户：登录 / 注册 / 同步 / 退出 / 注销
   if (account.enabled) {
@@ -903,6 +907,39 @@ function paintSettings() {
       catch (e) { say(e.message); } finally { busy(false); }
     });
   }
+}
+
+/** 联系 YUMO：弹出邮箱，可一键复制 */
+function openContact() {
+  const EMAIL = 'yumokunai@gmail.com';
+  const wrap = document.createElement('div');
+  wrap.className = 'pay-zoom';
+  wrap.innerHTML = `
+    <div class="pay-chooser" role="dialog" aria-label="联系 YUMO">
+      <p class="pay-chooser__title">联系 YUMO</p>
+      <p class="pay-chooser__sub">想说的话、发现的问题、或者只是想打个招呼——都会有人读到。</p>
+      <button class="contact-mail" type="button" data-mail="${EMAIL}">${EMAIL}</button>
+      <p class="contact-hint">点一下复制</p>
+    </div>`;
+  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 500); };
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
+  document.body.appendChild(wrap);
+  requestAnimationFrame(() => wrap.classList.add('is-in'));
+  wrap.querySelector('.contact-mail')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    try {
+      await navigator.clipboard.writeText(EMAIL);
+      btn.classList.add('is-ok');
+      btn.textContent = '已复制 ✓';
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = EMAIL; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); btn.classList.add('is-ok'); btn.textContent = '已复制 ✓'; }
+      catch { btn.textContent = EMAIL; }
+      ta.remove();
+    }
+    setTimeout(() => { btn.textContent = EMAIL; btn.classList.remove('is-ok'); }, 1800);
+  });
 }
 
 /** 赞助弹窗第一步：选择支付宝 / 微信 */
@@ -1024,9 +1061,18 @@ function renderLetter(l) {
   $('#letter-reply').hidden = false;
 }
 
+let letterTimer = null;
+
 function openLetterSheet() {
   el.letterSheet.hidden = false;
-  requestAnimationFrame(() => el.letterSheet.classList.add('is-in'));
+  el.letterBody.scrollTop = 0;
+  el.letterSheet.classList.remove('is-open');
+  requestAnimationFrame(() => {
+    el.letterSheet.classList.add('is-in');
+    /* 先落定（约 0.95s），手机/竖屏上再缓缓放大占满整屏 */
+    clearTimeout(letterTimer);
+    letterTimer = setTimeout(() => el.letterSheet.classList.add('is-open'), 980);
+  });
   const existing = letters.todayLetter();
   if (existing) { renderLetter(existing); return; }
   el.letterBody.innerHTML = '<p class="letter-loading">Yumo 正在写信…</p>';
@@ -1037,13 +1083,21 @@ function openLetterSheet() {
     .catch((e) => {
       el.letterBody.innerHTML =
         `<p class="letter-err">${escapeHtml(e.message || '今天的信没有写出来。')}</p>` +
-        '<p class="letter-err" style="margin-top:8px">过一会儿再点开试试。</p>';
+        '<p class="letter-err" style="margin-top:8px"><button class="link-quiet" id="letter-retry" type="button">再试一次</button></p>';
+      $('#letter-retry')?.addEventListener('click', () => {
+        el.letterBody.innerHTML = '<p class="letter-loading">Yumo 正在写信…</p>';
+        letters.ensureToday()
+          .then((l) => { if (l) renderLetter(l); })
+          .catch((e2) => { el.letterBody.innerHTML = `<p class="letter-err">${escapeHtml(e2.message || '还是没写出来。')}</p>`; });
+      });
     });
 }
 
 function closeLetterSheet() {
+  clearTimeout(letterTimer);
+  el.letterSheet.classList.remove('is-open');
   el.letterSheet.classList.remove('is-in');
-  setTimeout(() => { el.letterSheet.hidden = true; }, 500);
+  setTimeout(() => { el.letterSheet.hidden = true; }, 620);
 }
 
 function refreshLetterDot() {
