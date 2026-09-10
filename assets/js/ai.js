@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════
    ai.js —— Yumo 的思维
-     · 与 DeepSeek 的流式对话
+     · 与上游模型的流式对话
      · 人设：一个沉在水底、永远在听的陪伴者
      · 每次对话后，从你的话里提炼记忆与画像，
        下一次见面时，它已经记得你了。
@@ -106,14 +106,13 @@ export function isConnected() {
 }
 
 function friendlyError(status, body) {
-  let msg = '';
-  try { msg = JSON.parse(body)?.error?.message || ''; } catch { /* noop */ }
-  if (status === 401 || status === 403) return new AIError('密钥似乎不对。到「器皿」里重新填一次。', 'auth', status);
-  if (status === 402) return new AIError('账户余额不足了，充值后我再来。', 'balance', status);
+  /* 上游的原始报错不外露，只说 Yumo 自己的话 */
+  if (status === 401 || status === 403) return new AIError('这把钥匙好像不对。到「器皿」里重新填一次。', 'auth', status);
+  if (status === 402) return new AIError('这把钥匙的额度用完了。缓一缓，或者换一把。', 'balance', status);
   if (status === 429) return new AIError('说得太快，水面还没平。等一会儿再说。', 'rate', status);
-  if (status === 400) return new AIError(msg || '请求被拒绝了。检查一下模型名对不对。', 'config', status);
+  if (status === 400) return new AIError('这句话没能送出去，换个说法再试一次。', 'config', status);
   if (status >= 500) return new AIError('远端的水位有点问题，稍后再试。', 'server', status);
-  return new AIError(msg || `出错了（${status}）`, 'server', status);
+  return new AIError(`出错了（${status}），稍后再试一次。`, 'server', status);
 }
 
 /**

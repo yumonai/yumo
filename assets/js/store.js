@@ -10,7 +10,7 @@ const DEFAULTS = {
   settings: {
     apiKey: '',
     baseUrl: 'https://api.deepseek.com',
-    model: 'deepseek-flash', // DeepSeek V4.1 Flash · 原生多模态
+    model: 'deepseek-flash', // 上游模型 · 原生多模态
     temperature: 1.0,
     speakReplies: false,     // 自动朗读 Yumo 的回复
     speakRate: 1.0,
@@ -196,7 +196,7 @@ export const store = {
   },
 
   /**
-   * 取最近 n 轮对话，转成 DeepSeek 的消息。
+   * 取最近 n 轮对话，转成上游能读的消息。
    * 带图的消息会变成 content 数组（text + image_url），
    * 但只对最近 maxImageMsgs 条真的附图 —— 图片很贵。
    */

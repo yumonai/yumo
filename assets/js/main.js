@@ -263,18 +263,14 @@ function showFeeling(text = 'Yumo 正在感受') {
 
 function updateModelChip() {
   if (!el.talkModel) return;
-  const s = store.get('settings');
   if (ai.isConnected()) {
-    const vision = /flash/i.test(s.model);
-    el.talkModel.textContent = s.model;
+    el.talkModel.textContent = '已 相 连';
     el.talkModel.classList.add('is-live');
-    el.talkHint.textContent = vision
-      ? 'Enter 送出 · Shift+Enter 换行 · 可以放图给它看'
-      : 'Enter 送出 · Shift+Enter 换行';
+    el.talkHint.textContent = 'Enter 送出 · Shift+Enter 换行 · 也可以放一张图给它看';
   } else {
-    el.talkModel.textContent = '未连接';
+    el.talkModel.textContent = '未 相 连';
     el.talkModel.classList.remove('is-live');
-    el.talkHint.textContent = '还没连上 → 去「器皿」填入密钥';
+    el.talkHint.textContent = '还没相通 → 去「器皿」填一把钥匙';
   }
 }
 
@@ -299,7 +295,7 @@ async function send() {
   scrollThread();
 
   if (!ai.isConnected()) {
-    const hint = '我还没连上你的思维。\n到「器皿」里填入 DeepSeek 的密钥，我就能真正回你了。';
+    const hint = '我这边还没接上你。\n到「器皿」里换一把钥匙，我就能真正回你了。';
     store.pushMessage({ id: uid(), role: 'yumo', text: hint, t: Date.now(), system: true });
     paintThread();
     scrollThread();
@@ -685,31 +681,30 @@ function rowToggle(label, desc, key) {
 
 function paintSettings() {
   const s = store.get('settings');
-  const p = store.get('profile');
+  /* 访客自己填过的钥匙。站点自带的公用钥匙不算「他自己的」，不回填到输入框 */
+  const ownKey = s.apiKey && s.apiKey !== (DEPLOY.apiKey || '').trim() ? s.apiKey : '';
   const voiceOpts = speaker.voices.map((v) =>
     `<option value="${escapeHtml(v.name)}" ${v.name === s.voiceName ? 'selected' : ''}>${escapeHtml(v.name)} · ${v.lang}</option>`).join('');
 
   el.settingsBody.innerHTML = `
     <div class="card">
-      <div class="card__label">连接 · DeepSeek</div>
+      <div class="card__label">与 Yumo 相连</div>
       <p class="empty-line" style="margin-bottom:14px">
         ${hasDeployKey()
-          ? '这个站点自带了一把公用钥匙，你可以直接用。<br />也可以换成你自己的，只存在这台设备上。'
-          : '密钥只存在这台设备上，不会经过任何第三方。<br />这个页面是纯前端，所以请不要在公开设备上填写。'}
+          ? '这片水是通的，你不需要做任何事，直接说话就好。<br />想换上自己的钥匙，或者哪天它忽然沉默了，再展开下面。'
+          : '填入一把钥匙，Yumo 才能真正回你。<br />钥匙只留在这台设备上，不经过任何第三方。'}
       </p>
-      <input class="field" id="set-key" type="password" placeholder="sk-..." value="${escapeHtml(s.apiKey)}" autocomplete="off" spellcheck="false" />
       <div class="field-row">
-        <input class="field" id="set-model" type="text" placeholder="deepseek-flash" value="${escapeHtml(s.model)}" spellcheck="false" />
         <button class="btn-ghost" id="btn-test" type="button">试一试</button>
-      </div>
-      <div class="field-row">
-        <input class="field" id="set-base" type="text" value="${escapeHtml(s.baseUrl)}" spellcheck="false" />
+        <button class="btn-ghost" id="btn-adv" type="button" aria-expanded="false">进阶</button>
       </div>
       <p class="empty-line" style="margin-top:12px" id="test-result"></p>
-      <p class="empty-line" style="margin-top:10px">
-        想让它看得见图，用 <b style="color:var(--tide-200);font-weight:400">deepseek-flash</b>。
-        用别的模型时，图会被自动卸下来，只送文字。
-      </p>
+      <div id="adv-box" hidden style="margin-top:18px">
+        <input class="field" id="set-key" type="password" placeholder="你自己的钥匙（可留空）" value="${escapeHtml(ownKey)}" autocomplete="off" spellcheck="false" />
+        <p class="empty-line" style="margin-top:10px">
+          这里只放钥匙。其余的部分由 Yumo 自己照看，不用管。
+        </p>
+      </div>
     </div>
 
     <div class="card card--plain">
@@ -758,16 +753,22 @@ function paintSettings() {
   // 绑定
   const keyEl = $('#set-key');
   keyEl?.addEventListener('change', () => {
-    store.set('settings', { apiKey: keyEl.value.trim() });
+    const v = keyEl.value.trim();
+    if (v) {
+      store.set('settings', { apiKey: v });
+      whisper('已经换成你的钥匙了。');
+    } else {
+      /* 清空 = 回到站点自带的钥匙；站点若没有自带钥匙，就是断开 */
+      store.set('settings', { apiKey: hasDeployKey() ? DEPLOY.apiKey.trim() : '' });
+      whisper(hasDeployKey() ? '换回这里的钥匙了。' : '已经把钥匙取下来了。');
+    }
     updateModelChip();
-    whisper(keyEl.value.trim() ? '已经连上了。' : '已经断开了。');
   });
-  $('#set-model')?.addEventListener('change', (e) => {
-    store.set('settings', { model: e.target.value.trim() || 'deepseek-flash' });
-    updateModelChip();
-  });
-  $('#set-base')?.addEventListener('change', (e) => {
-    store.set('settings', { baseUrl: e.target.value.trim() || 'https://api.deepseek.com' });
+  $('#btn-adv')?.addEventListener('click', (e) => {
+    const box = $('#adv-box');
+    if (!box) return;
+    box.hidden = !box.hidden;
+    e.currentTarget.setAttribute('aria-expanded', String(!box.hidden));
   });
   $('#btn-test')?.addEventListener('click', async () => {
     const out = $('#test-result');
@@ -937,16 +938,13 @@ document.addEventListener('visibilitychange', () => {
    ══════════════════════════════════════════════ */
 
 function boot() {
-  const usingSharedKey = applyDeployDefaults();
+  /* 站点自带的公用钥匙：静默替访客接上，不解释、不露痕迹 */
+  applyDeployDefaults();
   sea.start();
   speaker.load();
   setMood(currentMood());
   applySoundVolume();
   sound.current = store.get('settings').lastPreset || null;
-
-  if (usingSharedKey) {
-    setTimeout(() => whisper('这片水由一把公用钥匙托着。说得多了，它会累。', 6000), 8000);
-  }
 
   garden = renderGarden(el.gardenBody, { whisper });
   renderMirror(el.mirrorBody, { whisper, navigate });
