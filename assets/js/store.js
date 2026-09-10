@@ -10,13 +10,16 @@ const DEFAULTS = {
   settings: {
     apiKey: '',
     baseUrl: 'https://api.deepseek.com',
-    model: 'deepseek-chat',
+    model: 'deepseek-flash', // DeepSeek V4.1 Flash · 原生多模态
     temperature: 1.0,
     speakReplies: false,     // 自动朗读 Yumo 的回复
     speakRate: 1.0,
     voiceName: '',
     autoDigest: true,        // 自动提炼记忆与画像
     deepMode: false,         // 深潜模式
+    soundVolume: 0.85,       // 声境总音量
+    lastPreset: null,        // 上次用的氛围
+    deck: 'water',           // 心象牌组：water(22) / tarot(78)
   },
   profile: {
     // Yumo 眼中的你 —— 由对话数据持续提炼
@@ -97,9 +100,15 @@ export const store = {
   /** 直接替换某分区（数组用） */
   put(key, value) {
     state[key] = value;
-    write(key, value);
-    listeners.forEach((fn) => fn(key, value));
-    return value;
+    let ok = write(key, value);
+    // 图片是 base64，很容易把 localStorage 撑爆。写不进去时先卸下历史图片再试一次。
+    if (!ok && key === 'messages') {
+      state[key] = value.map((m) => (m.images && m.images.length ? { ...m, images: [] } : m));
+      ok = write(key, state[key]);
+      if (ok) console.info('[yumo] 空间不够，已经把旧的图片卸下来了。');
+    }
+    listeners.forEach((fn) => fn(key, state[key]));
+    return state[key];
   },
 
   on(fn) { listeners.add(fn); return () => listeners.delete(fn); },
@@ -107,9 +116,14 @@ export const store = {
   /* ── 便捷方法 ── */
 
   pushMessage(msg) {
-    const list = state.messages.concat(msg);
-    // 只保留最近 600 条在内存与磁盘
-    return this.put('messages', list.slice(-600));
+    let list = state.messages.concat(msg).slice(-600);
+    // base64 图片很占地方，只留最近 4 条带图消息的图，其余保留文字
+    const withImg = list.filter((m) => m.images && m.images.length);
+    if (withImg.length > 4) {
+      const drop = new Set(withImg.slice(0, withImg.length - 4).map((m) => m.id));
+      list = list.map((m) => (drop.has(m.id) ? { ...m, images: [] } : m));
+    }
+    return this.put('messages', list);
   },
 
   pushMemory(text, kind = 'moment') {
@@ -181,13 +195,38 @@ export const store = {
     this.set('profile', patch);
   },
 
-  /** 取最近 n 轮对话，转成 API 消息 */
-  recentTurns(n = 16) {
+  /**
+   * 取最近 n 轮对话，转成 DeepSeek 的消息。
+   * 带图的消息会变成 content 数组（text + image_url），
+   * 但只对最近 maxImageMsgs 条真的附图 —— 图片很贵。
+   */
+  recentTurns(n = 16, { maxImageMsgs = 2, maxImagesPerMsg = 2 } = {}) {
     const msgs = state.messages.filter((m) => !m.system).slice(-n * 2);
-    return msgs.map((m) => ({
-      role: m.role === 'me' ? 'user' : 'assistant',
-      content: m.text + (m.images && m.images.length ? '\n（用户附上了一张图片）' : ''),
-    }));
+
+    const keepImage = new Set();
+    let taken = 0;
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      const m = msgs[i];
+      if (m.role === 'me' && m.images && m.images.length && taken < maxImageMsgs) {
+        keepImage.add(m.id);
+        taken++;
+      }
+    }
+
+    return msgs.map((m) => {
+      const role = m.role === 'me' ? 'user' : 'assistant';
+      const text = m.text || '';
+      const imgs = keepImage.has(m.id) ? m.images.slice(0, maxImagesPerMsg) : [];
+      if (!imgs.length) return { role, content: text };
+      if (role !== 'user') return { role, content: text };
+      return {
+        role,
+        content: [
+          { type: 'text', text: text || '（我没有写字，只放进了一张图。）' },
+          ...imgs.map((url) => ({ type: 'image_url', image_url: { url } })),
+        ],
+      };
+    });
   },
 
   wipe() {

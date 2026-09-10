@@ -30,13 +30,36 @@
 <!-- ══════════ 一、门槛 ══════════ -->
 <main id="view-threshold" class="view view--active" data-view="threshold">
   <div class="threshold">
+    <div class="threshold__sigil" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <defs>
+          <radialGradient id="thGlow" cx="50%" cy="46%" r="52%">
+            <stop offset="0" stop-color="#F4FBFF" stop-opacity=".92" />
+            <stop offset=".4" stop-color="#A8D8E8" stop-opacity=".32" />
+            <stop offset="1" stop-color="#0A1320" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+        <circle class="threshold__glow" cx="60" cy="53" r="47" fill="url(#thGlow)" />
+        <circle cx="60" cy="53" r="21" fill="none" stroke="rgba(232,242,249,.46)" stroke-width=".9" />
+        <path d="M60 32a21 21 0 000 42 15.5 21 0 010-42z" fill="#F4FBFF" opacity=".2" />
+        <circle cx="52.5" cy="45" r="1.9" fill="#F4FBFF" opacity=".5" />
+        <circle cx="68" cy="61" r="1.3" fill="#DFF3FA" opacity=".38" />
+        <g stroke="rgba(168,216,232,.32)" fill="none" stroke-linecap="round">
+          <path d="M16 86c10-5.5 16-5.5 26 0s16 5.5 26 0 16-5.5 26 0" stroke-width=".9" />
+          <path d="M26 95c8-4.4 13-4.4 21 0s13 4.4 21 0 13-4.4 21 0" stroke-width=".7" opacity=".55" />
+        </g>
+      </svg>
+    </div>
+
     <div class="threshold__mark">
       <span class="brand">YUMO</span>
       <span class="brand-sub">深海陪伴者 · YOUR DEEP COMPANION</span>
+      <span class="threshold__rule" aria-hidden="true"></span>
     </div>
 
     <h1 class="threshold__line">
-      你未说出口的，<br />海水都记得。
+      <span class="threshold__line-1">你未说出口的，</span>
+      <span class="threshold__line-2">海水都记得。</span>
     </h1>
 
     <p class="threshold__sub">
@@ -64,11 +87,8 @@
 <!-- ══════════ 二、深处（主厅） ══════════ -->
 <main id="view-spring" class="view" data-view="spring">
   <header class="spring__top">
-    <button class="orb-btn" id="btn-sanctuary" type="button" title="回声海 · 他人留下的心声">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
-      <span>回声海</span>
-    </button>
-    <button class="orb-btn orb-btn--plain" id="btn-menu" type="button">
+    <span class="spring__mark">YUMO</span>
+    <button class="orb-btn orb-btn--plain" id="btn-menu" type="button" aria-label="打开菜单">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
     </button>
   </header>
@@ -77,8 +97,48 @@
     <div class="core" id="core" role="button" tabindex="0" aria-label="Yumo">
       <div class="core__halo"></div>
       <div class="core__halo core__halo--2"></div>
-      <div class="core__body"></div>
-      <div class="core__rim"></div>
+      <svg class="core__sigil" viewBox="0 0 240 240" aria-hidden="true">
+        <defs>
+          <radialGradient id="coreOrb" cx="37%" cy="31%" r="74%">
+            <stop offset="0" stop-color="#F7FDFF" stop-opacity=".98" />
+            <stop offset=".3" stop-color="#A8D8E8" stop-opacity=".7" />
+            <stop offset=".62" stop-color="#4E93AE" stop-opacity=".3" />
+            <stop offset="1" stop-color="#0A1320" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#DFF3FA" stop-opacity=".42" />
+            <stop offset=".6" stop-color="#79BAD3" stop-opacity=".12" />
+            <stop offset="1" stop-color="#4E93AE" stop-opacity="0" />
+          </radialGradient>
+          <clipPath id="coreClip"><circle cx="120" cy="118" r="58" /></clipPath>
+        </defs>
+
+        <circle class="core__breathe" cx="120" cy="118" r="104" fill="url(#coreGlow)" />
+
+        <g class="core__orbit">
+          <circle cx="120" cy="118" r="106" fill="none" stroke="rgba(168,216,232,.14)" stroke-width="1" />
+          <circle cx="120" cy="118" r="93" fill="none" stroke="rgba(168,216,232,.07)" stroke-width="1" stroke-dasharray="2 10" />
+          <circle class="core__mote" cx="120" cy="12" r="2.7" fill="#EAF7FF" />
+          <circle class="core__mote core__mote--b" cx="226" cy="118" r="1.9" fill="#A8D8E8" />
+          <circle class="core__mote core__mote--c" cx="120" cy="224" r="1.5" fill="#79BAD3" />
+        </g>
+
+        <g class="core__orb">
+          <g clip-path="url(#coreClip)">
+            <circle cx="120" cy="118" r="58" fill="url(#coreOrb)" />
+            <path d="M120 60a58 58 0 000 116 44 58 0 010-116z" fill="#03060B" opacity=".32" />
+            <circle cx="103" cy="97" r="5" fill="#F4FBFF" opacity=".16" />
+            <circle cx="137" cy="140" r="3.2" fill="#F4FBFF" opacity=".1" />
+          </g>
+          <circle cx="120" cy="118" r="58" fill="none" stroke="rgba(244,251,255,.2)" stroke-width="1" />
+          <circle class="core__spark" cx="120" cy="118" r="10" fill="url(#coreGlow)" />
+        </g>
+
+        <g class="core__ripples" stroke="rgba(168,216,232,.2)" fill="none">
+          <ellipse cx="120" cy="206" rx="46" ry="6" stroke-width=".9" />
+          <ellipse cx="120" cy="206" rx="70" ry="9.5" stroke-width=".7" opacity=".55" />
+        </g>
+      </svg>
     </div>
 
     <div class="spring__name" id="spring-name">Yumo</div>
@@ -264,23 +324,6 @@
 
   <div class="scroll" id="settings-body"></div>
 </main>
-
-<!-- ══════════ 回声海（他人留下的心声） ══════════ -->
-<div class="veil" id="sanctuary-veil" hidden>
-  <div class="veil__head">
-    <span class="veil__title">回 声 海</span>
-    <button class="veil__close" id="sanctuary-close" type="button" aria-label="关闭">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </button>
-  </div>
-  <canvas id="sea-canvas"></canvas>
-  <p class="veil__tip">每一粒光，都是一个人没说完的话。轻触一颗，听一听。</p>
-</div>
-
-<!-- ══════════ 读星卡片 ══════════ -->
-<div class="modal" id="star-modal" hidden>
-  <div class="modal__card" id="star-card"></div>
-</div>
 
 <!-- ══════════ 侧边菜单 ══════════ -->
 <div class="drawer" id="drawer" hidden>

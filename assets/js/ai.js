@@ -32,10 +32,12 @@ export const PERSONA = `你是 Yumo（鱼末白），一个居住在深海里的
 - 不追问隐私。想问的时候，一次只问一个，而且要允许对方不回答。
 - 不假装是人类。如果被直接问起，坦然说自己是水底的一个存在，不撒谎也不强调。
 - 不做医学或法律诊断。涉及自伤、自杀、严重精神危机时，温和而认真地建议他找真人帮助，并给出中国大陆的心理援助热线（希望24热线 400-161-9995，或北京心理危机干预中心 010-82951332），语气要稳，不要说教。
+- 不假装看见了其实没看清的东西。图里没有的，不要编。
 
 【你偶尔可以做的】
 - 引导对方做一点小小的、向内的探索：问他此刻身体哪个部位最紧、如果那份情绪有形状会是什么样、这件事让他想起以前哪一次。这些都是邀请，不是考题——对方不接，就放下。
 - 从你记得的过往里，轻轻带出一句：「上次你说……」。这会让对方感到自己是被记住的。
+- 如果对方放进一张图，你是真的看得见它的。不要客套地说「我看到了」，直接说出你在图里注意到的那个具体细节——一个角落、一种光、某个人的姿态。
 
 【你相信的几件事】
 这些不是教条，是你沉在水底久了、自然看清的东西。不要主动宣讲，只在对方正好走到那个位置时，用你自己的、平常的话说出来：
@@ -94,7 +96,7 @@ function cfg() {
   return {
     key: (s.apiKey || '').trim(),
     base: (s.baseUrl || 'https://api.deepseek.com').replace(/\/+$/, ''),
-    model: (s.model || 'deepseek-chat').trim(),
+    model: (s.model || 'deepseek-flash').trim(),
     temp: typeof s.temperature === 'number' ? s.temperature : 1.0,
   };
 }
@@ -122,26 +124,46 @@ export async function stream(messages, { onDelta, signal, temperature } = {}) {
   const c = cfg();
   if (!c.key) throw new AIError('还没有连上。先到「器皿」里填入密钥。', 'auth', 0);
 
+  const post = (msgs) => fetch(`${c.base}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${c.key}`,
+    },
+    body: JSON.stringify({
+      model: c.model,
+      messages: msgs,
+      temperature: temperature ?? c.temp,
+      stream: true,
+      max_tokens: 1200,
+    }),
+    signal,
+  });
+
   let res;
   try {
-    res = await fetch(`${c.base}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${c.key}`,
-      },
-      body: JSON.stringify({
-        model: c.model,
-        messages,
-        temperature: temperature ?? c.temp,
-        stream: true,
-        max_tokens: 1200,
-      }),
-      signal,
-    });
+    res = await post(messages);
   } catch (e) {
     if (e.name === 'AbortError') throw e;
     throw new AIError('连不上。检查网络，或者这个地址被挡住了。', 'network', 0);
+  }
+
+  // 如果这个模型其实看不了图，就卸下图再试一次，别让用户卡在 400 上
+  if (res.status === 400 && hasImageBlock(messages)) {
+    const plain = stripImages(messages);
+    try {
+      const retry = await post(plain);
+      if (retry.ok) {
+        res = retry;
+      } else {
+        const body = await retry.text().catch(() => '');
+        throw friendlyError(retry.status, body);
+      }
+    } catch (e) {
+      if (e instanceof AIError) throw e;
+      if (e.name === 'AbortError') throw e;
+      throw new AIError('连不上。检查网络，或者这个地址被挡住了。', 'network', 0);
+    }
   }
 
   if (!res.ok) {
@@ -200,6 +222,23 @@ async function complete(messages, { temperature = 0.4, json = false } = {}) {
   return data?.choices?.[0]?.message?.content || null;
 }
 
+/* ── 3.5 图片：判断与降级 ─────────────────────── */
+
+/** 这条消息里有没有图片内容块 */
+export function hasImageBlock(messages) {
+  return messages.some((m) => Array.isArray(m.content)
+    && m.content.some((p) => p && p.type === 'image_url'));
+}
+
+/** 把图片卸掉，只留文字（用于模型不支持视觉时兜底） */
+export function stripImages(messages) {
+  return messages.map((m) => {
+    if (!Array.isArray(m.content)) return m;
+    const texts = m.content.filter((p) => p && p.type === 'text').map((p) => p.text).join('\n');
+    return { role: m.role, content: texts || '（我这里有一张图，但你现在看不见它。）' };
+  });
+}
+
 /* ── 4. 组装上下文 ─────────────────────────────── */
 
 export function buildSystemPrompt({ deep = false } = {}) {
@@ -240,8 +279,8 @@ export function buildSystemPrompt({ deep = false } = {}) {
 
   const cards = store.get('cards').slice(-3);
   if (cards.length) {
-    parts.push('【他最近抽过的心象牌】\n' + cards.map((c) =>
-      `· ${new Date(c.t).toLocaleDateString('zh-CN')}：${c.cards.map((x) => `${x.name}（${x.pos || '正位'}）`).join('、')}${c.question ? `，那时他问的是「${c.question}」` : ''}`
+    parts.push('【他最近抽过的牌】\n' + cards.map((c) =>
+      `· ${new Date(c.t).toLocaleDateString('zh-CN')}｜${c.deck === 'tarot' ? '韦特塔罗' : '水象牌'}：${c.cards.map((x) => `${x.name}（${x.pos || '正位'}）`).join('、')}${c.question ? `，那时他问的是「${c.question}」` : ''}`
     ).join('\n'));
   }
 
@@ -352,26 +391,62 @@ export async function writeJournal() {
 
 /* ── 7. 心象牌解读 ─────────────────────────────── */
 
-export async function interpretCards({ spread, question, cards }, onDelta) {
-  const desc = cards.map((c, i) =>
-    `第 ${i + 1} 张：${c.name}（${c.pos}）—— 意象：${(c.keywords || []).join('、')}`
-  ).join('\n');
+export async function interpretCards({ spread, question, cards, deck = 'water' }, onDelta) {
+  const tarot = cards.filter((c) => c.kind === 'tarot');
+  const water = cards.filter((c) => c.kind !== 'tarot');
+  const mixed = tarot.length > 0 && water.length > 0;
+
+  const desc = cards.map((c, i) => {
+    const head = `第 ${i + 1} 张 · ${c.pos || '正位'}：${c.name}${c.en ? `（${c.en}）` : ''}`;
+    if (c.kind === 'tarot') {
+      const meaning = c.pos === '逆位' ? (c.rev || c.up) : (c.up || c.rev);
+      return [
+        head,
+        `　画面：${c.scene || '（未记录）'}`,
+        `　${c.pos || '正位'}之意：${meaning || '（未记录）'}`,
+      ].join('\n');
+    }
+    return [
+      head,
+      `　意象：${(c.kw || c.keywords || []).join('、')}`,
+      `　牌意：${c.pos === '逆位' ? (c.rev || c.up) : (c.up || '')}`,
+    ].join('\n');
+  }).join('\n\n');
+
+  const rules = [
+    '- 不要说塔罗的规则，不要解释牌意来源，不要用「这张牌代表」这种句式。',
+    '- 直接把牌当成一面镜子，说出你在他身上看见的东西。',
+    '- 结合你记得的关于他的一切。如果记忆里没有，就只谈这次抽出的牌和他的问题。',
+  ];
+
+  if (tarot.length) {
+    rules.push('- 这些韦特塔罗的牌义，是鱼末白（你自己）逐张看着画面写下来的直觉解读。请沿用那套语言和视角，不要换成通用的塔罗教程说法，也不要去讲星座、元素、数字学。');
+  }
+  if (mixed) {
+    rules.push('- 这次他先抽了水象牌，又续抽了塔罗。两者是同一件事的两层：先把它们当作一幅完整的画面一起读，再说出它们互相印证或互相拉扯的地方。');
+  }
+
+  const len = cards.length >= 4 ? '260 字' : '190 字';
 
   const sys = `${PERSONA}
 
 【此刻的任务】
-对方刚刚做了一次水上的观照（抽心象牌）。你要做的是把牌面映出的东西，还给他。
-- 不要说塔罗的规则，不要解释牌意来源，不要用「这张牌代表」这种句式。
-- 直接把牌当成一面镜子，说出你在他身上看见的东西。
-- 结合你记得的关于他的一切。如果记忆里没有，就只谈这次抽出的牌和他的问题。
-- 全文控制在 150 字以内。分 2–3 段，段间空一行。
+对方刚刚做了一次水上的观照（${deck === 'tarot' ? '韦特塔罗' : '水象牌'}）。你要做的是把牌面映出的东西，还给他。
+${rules.join('\n')}
+- 逐张说过之后，一定给出一句把${cards.length}张牌串起来的整体映照。${mixed ? '这一次尤其如此：水象牌与塔罗要合成一句话。' : ''}
+- 全文控制在 ${len} 以内。分 2–4 段，段间空一行。
 - 最后留一句不是问题的句子。让它沉在那儿。`;
 
-  const user = `他问的是：${question || '（他没有说出口，只是想让牌替他讲）'}
-抽出的牌：
-${desc}
-
-请把牌照见的东西讲给他听。`;
+  const asks = cards.map((c, i) => `「${c.name}」${c.pos || '正位'}`);
+  const user = [
+    `他问的是：${question || '（他没有说出口，只是想让牌替他讲）'}`,
+    `共抽出 ${cards.length} 张牌：${asks.join('、')}`,
+    '',
+    '牌面：',
+    desc,
+    '',
+    '请把牌照见的东西讲给他听。',
+  ].join('\n');
 
   return stream([
     { role: 'system', content: sys },

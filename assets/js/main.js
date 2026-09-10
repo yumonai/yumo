@@ -3,11 +3,12 @@
    ══════════════════════════════════════════════ */
 
 import { store, uid, clamp } from './store.js';
-import { DeepSea, EchoSea } from './scene.js';
+import { DeepSea } from './scene.js';
 import { Soundscape, ICONS } from './ambient.js';
 import { Listener, Speaker } from './voice.js';
 import { renderGarden } from './garden.js';
 import { renderMirror } from './mirror.js';
+import { DEPLOY, hasDeployKey } from './config.js';
 import * as ai from './ai.js';
 
 /* ── DOM ── */
@@ -38,12 +39,21 @@ const el = {
   fileInput: $('#file-image'),
   drawer: $('#drawer'),
   drawerNav: $('#drawer-nav'),
-  starModal: $('#star-modal'),
-  starCard: $('#star-card'),
-  sanctuaryVeil: $('#sanctuary-veil'),
-  seaCanvas: $('#sea-canvas'),
   timerLabel: $('#timer-label'),
 };
+
+/* ── 上线时自带的公用钥匙：只在访客还没填过密钥时替他连上 ── */
+function applyDeployDefaults() {
+  if (!hasDeployKey() || !DEPLOY.autoConnect) return false;
+  const s = store.get('settings');
+  if (s.apiKey) return false;
+  store.set('settings', {
+    apiKey: DEPLOY.apiKey.trim(),
+    baseUrl: DEPLOY.baseUrl || s.baseUrl,
+    model: DEPLOY.model || s.model,
+  });
+  return true;
+}
 
 /* ── 引擎 ── */
 const sea = new DeepSea(el.scene);
@@ -51,7 +61,6 @@ const sound = new Soundscape();
 const listener = new Listener();
 const speaker = new Speaker();
 
-let echoSea = null;
 let view = 'threshold';
 let garden = null;
 let busy = false;
@@ -68,6 +77,14 @@ function whisper(text, ms = 3400) {
   el.whisper.classList.add('is-on');
   clearTimeout(whisperTimer);
   whisperTimer = setTimeout(() => el.whisper.classList.remove('is-on'), ms);
+}
+
+/* 安全提示：只在进入水面之后说一次，不挡首屏的月印 */
+let safetyShown = false;
+function maybeShowSafety(delay = 2600) {
+  if (safetyShown) return;
+  safetyShown = true;
+  setTimeout(() => whisper('这只是一种陪伴，不是治疗。如果你正处在很黑的时刻，请一定找一个真人。', 7000), delay);
 }
 
 /* ══════════════════════════════════════════════
@@ -248,9 +265,12 @@ function updateModelChip() {
   if (!el.talkModel) return;
   const s = store.get('settings');
   if (ai.isConnected()) {
+    const vision = /flash/i.test(s.model);
     el.talkModel.textContent = s.model;
     el.talkModel.classList.add('is-live');
-    el.talkHint.textContent = 'Enter 送出 · Shift+Enter 换行';
+    el.talkHint.textContent = vision
+      ? 'Enter 送出 · Shift+Enter 换行 · 可以放图给它看'
+      : 'Enter 送出 · Shift+Enter 换行';
   } else {
     el.talkModel.textContent = '未连接';
     el.talkModel.classList.remove('is-live');
@@ -374,20 +394,46 @@ function paintAttachments() {
   }));
 }
 
-el.fileInput?.addEventListener('change', () => {
-  const files = [...(el.fileInput.files || [])].slice(0, 4);
-  files.forEach((f) => {
-    if (!f.type.startsWith('image/')) return;
-    const r = new FileReader();
-    r.onload = () => {
-      pendingImages.push(r.result);
-      paintAttachments();
-      if (pendingImages.length === 1) {
-        whisper('图已经放进水里了。DeepSeek 目前看不见图，你可以顺手写一句它是什么。', 5200);
-      }
+const MAX_EDGE = 1280;      // 送进模型前把长边压到这个尺寸
+const MAX_KEEP = 900 * 1024; // 已经够小就不动了
+
+/** 把一张图压到可用的尺寸：既省流量，也不会撑爆 localStorage */
+function shrinkImage(file, maxEdge = MAX_EDGE, quality = 0.82) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const src = String(reader.result || '');
+      if (!src) return resolve(null);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        if (scale >= 1 && src.length < MAX_KEEP) return resolve(src);
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const cv = document.createElement('canvas');
+        cv.width = w;
+        cv.height = h;
+        const g = cv.getContext('2d');
+        g.drawImage(img, 0, 0, w, h);
+        try { resolve(cv.toDataURL('image/jpeg', quality)); } catch { resolve(src); }
+      };
+      img.onerror = () => resolve(src);
+      img.src = src;
     };
-    r.readAsDataURL(f);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
   });
+}
+
+el.fileInput?.addEventListener('change', async () => {
+  const files = [...(el.fileInput.files || [])].slice(0, 4);
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) continue;
+    const data = await shrinkImage(f);
+    if (data) pendingImages.push(data);
+  }
+  paintAttachments();
+  if (pendingImages.length) whisper('图已经放进水里了。Yumo 看得见它。', 4200);
   el.fileInput.value = '';
 });
 
@@ -434,31 +480,75 @@ const PRESETS = [
   { id: 'off',     name: '全 部 停 下' },
 ];
 
+function applySoundVolume() {
+  const v = store.get('settings').soundVolume;
+  if (typeof v === 'number') sound.setVolume(v);
+}
+
 function paintSound() {
   const levels = sound.levels;
+  const st = store.get('settings');
+  const volv = Math.round((typeof st.soundVolume === 'number' ? st.soundVolume : 0.85) * 100);
+
   el.soundMix.innerHTML = PRESETS.map((p) =>
-    `<button data-preset="${p.id}" type="button">${p.name}</button>`).join('');
+    `<button data-preset="${p.id}" type="button" class="${sound.current === p.id ? 'is-on' : ''}">${p.name}</button>`).join('');
   $$('[data-preset]', el.soundMix).forEach((b) => b.addEventListener('click', () => {
     const p = b.dataset.preset;
+    const what = b.textContent.trim();
+    applySoundVolume();
     sound.preset(p);
+    store.set('settings', { lastPreset: p === 'off' ? null : p });
     if (p !== 'off' && !soundTimer && !el.timerLabel.dataset.custom) startSoundTimer(30);
     paintSound();
-    whisper(p === 'off' ? '水停了。' : '调好了。');
+    if (p !== 'off' && !sound.running && sound.active) whisper('浏览器还没允许发声。轻触一下页面，再点一次。', 5200);
+    else whisper(p === 'off' ? '水停了。' : `调好了 · ${what}`);
   }));
 
-  el.soundRows.innerHTML = sound.list.map((s) => `
+  el.soundRows.innerHTML = `
+    <div class="sound-vol">
+      <div class="sound-vol__head"><span>总 音 量</span><b id="sound-vol-val">${volv}%</b></div>
+      <input type="range" id="sound-vol" min="0" max="100" value="${volv}" aria-label="总音量" />
+    </div>
+  ` + sound.list.map((s) => {
+    const on = (levels[s.id] || 0) > 0.01;
+    return `
     <div class="sound-row">
-      <div class="sound-row__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">${ICONS[s.icon]}</svg></div>
+      <button class="sound-row__ico ${on ? 'is-on' : ''}" data-solo="${s.id}" type="button" aria-label="${s.name}·单独听">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">${ICONS[s.icon]}</svg>
+      </button>
       <div class="sound-row__txt"><b>${s.name}</b><span>${s.desc}</span></div>
-      <input type="range" min="0" max="100" value="${Math.round((levels[s.id] || 0) * 100)}" data-snd="${s.id}" />
-    </div>`).join('');
+      <input type="range" min="0" max="100" value="${Math.round((levels[s.id] || 0) * 100)}" data-snd="${s.id}" aria-label="${s.name}" />
+    </div>`;
+  }).join('');
 
   $$('[data-snd]', el.soundRows).forEach((r) => {
     r.addEventListener('input', () => {
-      sound.set(r.dataset.snd, Number(r.value) / 100);
+      const id = r.dataset.snd;
+      sound.set(id, Number(r.value) / 100);
+      el.soundRows.querySelector(`[data-solo="${id}"]`)?.classList.toggle('is-on', Number(r.value) > 1);
       syncPulse();
     });
   });
+
+  // 点图标 = 让这一路单独响起来 / 停下来
+  $$('[data-solo]', el.soundRows).forEach((b) => b.addEventListener('click', () => {
+    const id = b.dataset.solo;
+    const cur = sound.levels[id] || 0;
+    applySoundVolume();
+    sound.set(id, cur > 0.01 ? 0 : 0.62);
+    paintSound();
+    if (!sound.running && sound.active) whisper('浏览器还没允许发声。轻触页面任意处，再试一次。', 5200);
+  }));
+
+  $('#sound-vol')?.addEventListener('input', (e) => {
+    const v = Number(e.target.value) / 100;
+    sound.ensure();
+    sound.setVolume(v);
+    store.set('settings', { soundVolume: v });
+    const lab = $('#sound-vol-val');
+    if (lab) lab.textContent = e.target.value + '%';
+  });
+
   syncPulse();
 }
 
@@ -603,18 +693,23 @@ function paintSettings() {
     <div class="card">
       <div class="card__label">连接 · DeepSeek</div>
       <p class="empty-line" style="margin-bottom:14px">
-        密钥只存在这台设备上，不会经过任何第三方。<br />
-        这个页面是纯前端，所以请不要在公开设备上填写。
+        ${hasDeployKey()
+          ? '这个站点自带了一把公用钥匙，你可以直接用。<br />也可以换成你自己的，只存在这台设备上。'
+          : '密钥只存在这台设备上，不会经过任何第三方。<br />这个页面是纯前端，所以请不要在公开设备上填写。'}
       </p>
       <input class="field" id="set-key" type="password" placeholder="sk-..." value="${escapeHtml(s.apiKey)}" autocomplete="off" spellcheck="false" />
       <div class="field-row">
-        <input class="field" id="set-model" type="text" placeholder="deepseek-chat" value="${escapeHtml(s.model)}" spellcheck="false" />
+        <input class="field" id="set-model" type="text" placeholder="deepseek-flash" value="${escapeHtml(s.model)}" spellcheck="false" />
         <button class="btn-ghost" id="btn-test" type="button">试一试</button>
       </div>
       <div class="field-row">
         <input class="field" id="set-base" type="text" value="${escapeHtml(s.baseUrl)}" spellcheck="false" />
       </div>
       <p class="empty-line" style="margin-top:12px" id="test-result"></p>
+      <p class="empty-line" style="margin-top:10px">
+        想让它看得见图，用 <b style="color:var(--tide-200);font-weight:400">deepseek-flash</b>。
+        用别的模型时，图会被自动卸下来，只送文字。
+      </p>
     </div>
 
     <div class="card card--plain">
@@ -668,7 +763,7 @@ function paintSettings() {
     whisper(keyEl.value.trim() ? '已经连上了。' : '已经断开了。');
   });
   $('#set-model')?.addEventListener('change', (e) => {
-    store.set('settings', { model: e.target.value.trim() || 'deepseek-chat' });
+    store.set('settings', { model: e.target.value.trim() || 'deepseek-flash' });
     updateModelChip();
   });
   $('#set-base')?.addEventListener('change', (e) => {
@@ -711,101 +806,6 @@ function paintSettings() {
 }
 
 /* ══════════════════════════════════════════════
-   回声海
-   ══════════════════════════════════════════════ */
-
-const VOICES = [
-  { mood: 'dusk',   text: '今天把他的号码删了。第三次。' },
-  { mood: 'cocoon', text: '我妈生病那年我十七岁。现在我三十一了，还是不敢听医院走廊的声音。' },
-  { mood: 'dawn',   text: '今天第一次一个人去看了电影，发现也没那么可怕。' },
-  { mood: 'dusk',   text: '我们分手很平静，没有吵架。可我总觉得，是不是我哪里不够用力。' },
-  { mood: 'cocoon', text: '我一直在等他说一句「辛苦了」。等到现在也不打算等了。' },
-  { mood: 'dawn',   text: '开始学游泳了。四十二岁，第一次敢把头埋进水里。' },
-  { mood: 'cocoon', text: '所有人都说我过得好。只有我知道每天早上要花多久才能起床。' },
-  { mood: 'dusk',   text: '爷爷走的那天是个晴天。我居然笑了，因为我松了口气。我到现在都不能原谅自己那个笑。' },
-  { mood: 'dawn',   text: '我把辞职信发出去了。手在抖，但心里很静。' },
-  { mood: 'cocoon', text: '我不知道自己想要什么。这句话我说了十年了。' },
-  { mood: 'dusk',   text: '其实我不是想死，我只是想停下来。' },
-  { mood: 'dawn',   text: '今天有个陌生人帮我扶了门。我居然在电梯里哭了。' },
-  { mood: 'cocoon', text: '我今年三十五岁，还是不敢让任何人看到我没化妆的样子。' },
-  { mood: 'dusk',   text: '养了十四年的猫走了。房间太安静了。' },
-  { mood: 'dawn',   text: '和他打了电话，说了很多年没说的话。挂掉以后，睡得特别好。' },
-  { mood: 'cocoon', text: '我很努力地想让父母满意。后来发现他们满意的那个我，我自己都觉得陌生。' },
-  { mood: 'dawn',   text: '今天出门前，我对镜子里的自己说了句「今天也辛苦了」。有点傻，但我笑了。' },
-  { mood: 'cocoon', text: '我一直在做一个很懂事的女儿。累。' },
-  { mood: 'dusk',   text: '有些人不在了，但他们的椅子还空在那里。' },
-  { mood: 'dawn',   text: '第一次自己煮了一顿饭。糊了。但我吃完了。' },
-];
-
-const ANCHORS = {
-  dusk:   { name: '暮', sub: '告别' },
-  cocoon: { name: '茧', sub: '转化' },
-  dawn:   { name: '曙', sub: '重生' },
-};
-
-function openSanctuary() {
-  el.sanctuaryVeil.hidden = false;
-  const saved = store.get('sea') || { lights: {} };
-  const list = VOICES.map((v, i) => ({
-    text: v.text,
-    mood: v.mood,
-    light: saved.lights?.[i] || 0,
-  }));
-
-  // 等布局稳定后再布点，否则星星会挤在左上角
-  echoSea = new EchoSea(el.seaCanvas);
-  if (window.__yumo) window.__yumo.echoSea = echoSea;
-  echoSea.onPick = (star) => {
-    const idx = VOICES.findIndex((v) => v.text === star.text);
-    const a = ANCHORS[star.mood];
-    el.starCard.innerHTML = `
-      <div class="card__label" style="text-align:center">${a.name} · ${a.sub}</div>
-      <p style="font-family:var(--font-serif);font-size:15.5px;line-height:2.1;letter-spacing:.05em;color:var(--mist-050);text-align:center;margin:14px 0 0">${escapeHtml(star.text)}</p>
-      <p class="empty-line" style="text-align:center;margin-top:16px">
-        这一段来自一个陌生人。他不在你认识的人里。
-      </p>
-      <div style="display:flex;justify-content:center;gap:10px;margin-top:20px">
-        <button class="btn-ghost" id="star-light" type="button">
-          ${star.light > 0 ? `★ 已点过 ${star.light} 次` : '为他点一束光'}
-        </button>
-        <button class="btn-ghost" id="star-next" type="button">漂流到下一颗</button>
-      </div>
-      <p class="empty-line" style="text-align:center;margin-top:16px;font-size:10.5px">
-        你的点光也是匿名的。他只会看到自己的星星亮了一点。
-      </p>`;
-    el.starModal.hidden = false;
-
-    $('#star-light')?.addEventListener('click', () => {
-      star.light = (star.light || 0) + 1;
-      const lights = { ...(saved.lights || {}) };
-      lights[idx] = star.light;
-      store.set('sea', { lights });
-      $('#star-light').textContent = `★ 已点过 ${star.light} 次`;
-      whisper('你把光放在那里了。');
-    });
-    $('#star-next')?.addEventListener('click', () => {
-      el.starModal.hidden = true;
-      const others = echoSea.stars.filter((s) => s !== star);
-      const pick = others[Math.floor(Math.random() * others.length)];
-      if (pick) echoSea.onPick(pick);
-    });
-  };
-  requestAnimationFrame(() => {
-    if (!echoSea) return;
-    echoSea.resize();
-    echoSea.load(list);
-    echoSea.start();
-  });
-}
-
-function closeSanctuary() {
-  el.sanctuaryVeil.hidden = true;
-  el.starModal.hidden = true;
-  echoSea?.stop();
-  echoSea = null;
-}
-
-/* ══════════════════════════════════════════════
    抽屉
    ══════════════════════════════════════════════ */
 
@@ -844,7 +844,8 @@ document.addEventListener('click', (e) => {
 
 $('#btn-dive')?.addEventListener('click', () => {
   store.set('flags', { dived: true });
-  // 第一声水响：借用户手势启动音频，但先保持静音
+  // 借用户手势把音频解锁（浏览器只允许在手势里启动 AudioContext）
+  applySoundVolume();
   sound.ensure();
   navigate('spring');
   setTimeout(() => {
@@ -852,6 +853,7 @@ $('#btn-dive')?.addEventListener('click', () => {
       ? '你回来了。'
       : '水很静。我在这里。';
   }, 900);
+  maybeShowSafety(2400);
 });
 
 $('#core')?.addEventListener('click', () => navigate('talk'));
@@ -863,10 +865,6 @@ $('#btn-menu')?.addEventListener('click', () => { paintDrawer(); el.drawer.hidde
 $('#drawer-reset')?.addEventListener('click', () => {
   if (confirm('清空之后，Yumo 就再也不记得你了。真的要这么做吗？')) store.wipe();
 });
-$('#btn-sanctuary')?.addEventListener('click', openSanctuary);
-$('#sanctuary-close')?.addEventListener('click', closeSanctuary);
-$('#star-modal')?.addEventListener('click', (e) => { if (e.target.id === 'star-modal') el.starModal.hidden = true; });
-
 /* 对话输入 */
 el.input?.addEventListener('input', autoGrow);
 el.input?.addEventListener('keydown', (e) => {
@@ -924,9 +922,7 @@ $$('#garden-seg .seg__i').forEach((b) => b.addEventListener('click', () => {
 /* 键盘：Esc 一层层往回退 */
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  if (!el.starModal.hidden) { el.starModal.hidden = true; return; }
   if (!el.drawer.hidden) { el.drawer.hidden = true; return; }
-  if (!el.sanctuaryVeil.hidden) { closeSanctuary(); return; }
   if (view !== 'spring' && view !== 'threshold') navigate('spring');
 });
 
@@ -941,9 +937,16 @@ document.addEventListener('visibilitychange', () => {
    ══════════════════════════════════════════════ */
 
 function boot() {
+  const usingSharedKey = applyDeployDefaults();
   sea.start();
   speaker.load();
   setMood(currentMood());
+  applySoundVolume();
+  sound.current = store.get('settings').lastPreset || null;
+
+  if (usingSharedKey) {
+    setTimeout(() => whisper('这片水由一把公用钥匙托着。说得多了，它会累。', 6000), 8000);
+  }
 
   garden = renderGarden(el.gardenBody, { whisper });
   renderMirror(el.mirrorBody, { whisper, navigate });
@@ -957,11 +960,7 @@ function boot() {
   if (store.get('flags').dived && store.get('messages').length) {
     navigate('spring');
     el.springState.textContent = '你回来了。';
-  }
-
-  // 首次进入的提示
-  if (!store.get('settings').apiKey) {
-    setTimeout(() => whisper('这只是一种陪伴，不是治疗。如果你正处在很黑的时刻，请一定找一个真人。', 7000), 2600);
+    maybeShowSafety(2400);
   }
 }
 

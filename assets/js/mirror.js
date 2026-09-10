@@ -1,12 +1,15 @@
 /* ══════════════════════════════════════════════
    mirror.js —— 心象
-   一副为 Yumo 原创的「水象牌」，22 张。
-   意象取自深海、月相与心智，图形皆为抽象符号。
-   用法只有一种：带着一个问题，看它映出什么。
+   两副牌叠在同一个水面上：
+     · 水象牌  —— Yumo 原创的 22 张，图形是抽象符号
+     · 韦特塔罗 —— 经典 78 张，牌义由鱼末白逐张看画面写成
+   水象牌翻开之后，还可以接着抽一张塔罗，
+   两副牌会一起交给 Yumo，由它合成一句整体的话。
    ══════════════════════════════════════════════ */
 
 import { store, uid } from './store.js';
 import { interpretCards, isConnected } from './ai.js';
+import { TAROT, tarotImage, tarotTag } from './tarot.js';
 
 /* ── 抽象符号库：每个函数返回一段 SVG 内部标记 ── */
 const G = {
@@ -82,37 +85,76 @@ export const CARDS = [
     up: '你正卡在两件事中间。潮间带是生物最多的地方，过渡本身就有它的丰富。', rev: '你急着要一个答案，其实这一段就是要一直待着的。' },
 ];
 
-const POSITION_LABEL = ['表象', '真相', '启示'];
-const POSITION_NOTE = ['你看见的', '底下那层', '可以走的方向'];
+/* 牌位：一念是一格，三问是三格，续抽的塔罗另起一格 */
+const SLOTS = {
+  single: [{ label: '此刻', note: '牌映出的那一面' }],
+  trinity: [
+    { label: '表象', note: '你看见的' },
+    { label: '真相', note: '底下那层' },
+    { label: '启示', note: '可以走的方向' },
+  ],
+};
+const EXTEND_SLOT = { label: '续 · 塔罗', note: '再往下照一层' };
+
+const DECK_INFO = {
+  water: { name: '水象牌', sub: 'Yumo 自绘 · 22 张', count: 22 },
+  tarot: { name: '韦特塔罗', sub: '经典 · 78 张', count: 78 },
+};
 
 /* ── 牌面渲染 ── */
-export function cardFace(card, pos = 0, { small = false } = {}) {
+export function cardFace(card, { small = false } = {}) {
+  const slot = card.slot || {};
+  const reversed = card.pos === '逆位';
+  const body = reversed ? (card.rev || card.up) : (card.up || card.rev);
+
+  if (card.kind === 'tarot') {
+    return `
+      <div class="drawn__art drawn__art--tarot">
+        <img class="${reversed ? 'is-rev' : ''}" src="${tarotImage(card)}" alt="${escapeHtml(card.name)}" loading="lazy" decoding="async" />
+      </div>
+      <div class="drawn__meta">
+        <h4>${card.name}<em class="pos">${card.pos || '正位'}</em></h4>
+        <small>${slot.label || ''}${slot.note ? ' · ' + slot.note : ''}</small>
+        <small class="drawn__meta-en">${card.en || ''} · ${tarotTag(card)}</small>
+        <p>${body || ''}</p>
+      </div>`;
+  }
+
   return `
     <div class="drawn__art" style="${small ? 'height:104px' : ''}">
       <svg viewBox="0 0 64 64" aria-hidden="true">${G[card.glyph] || G.core}</svg>
       <em>${card.el}</em>
     </div>
     <div class="drawn__meta">
-      <h4>${card.name}</h4>
-      <small>${POSITION_LABEL[pos] || ''}${POSITION_NOTE[pos] ? ' · ' + POSITION_NOTE[pos] : ''}</small>
-      <p>${card.up}</p>
+      <h4>${card.name}<em class="pos">${card.pos || '正位'}</em></h4>
+      <small>${slot.label || ''}${slot.note ? ' · ' + slot.note : ''}</small>
+      <p>${body || ''}</p>
     </div>`;
 }
 
 /* ── 主视图 ── */
 export function renderMirror(root, { whisper, navigate }) {
+  let deck = store.get('settings').deck === 'tarot' ? 'tarot' : 'water';
   let spread = 'single';         // single | trinity
   let question = '';
-  let phase = 'ask';             // ask | draw | revealed
+  let phase = 'ask';             // ask | drawing | revealed
   let drawn = [];
   let reading = '';
-  let readingLive = false;
+
+  const deckName = () => (DECK_INFO[deck] || DECK_INFO.water).name;
 
   const shell = () => {
     root.innerHTML = `
       <div class="mirror-intro">
         <h2>心 象</h2>
         <p>水面上映出来的，从来不是水里的东西，<br />是站在岸上的你。</p>
+      </div>
+
+      <div class="deck-row" role="tablist">
+        ${Object.keys(DECK_INFO).map((k) => `
+          <button class="deck-tab ${deck === k ? 'is-on' : ''}" data-deck="${k}" type="button" role="tab">
+            <b>${DECK_INFO[k].name}</b><span>${DECK_INFO[k].sub}</span>
+          </button>`).join('')}
       </div>
 
       <div class="spread-row">
@@ -130,24 +172,38 @@ export function renderMirror(root, { whisper, navigate }) {
       </div>
 
       <div class="deck-zone">
-        <div class="deck" id="deck" role="button" tabindex="0" aria-label="抽牌">
+        <div class="deck ${deck === 'tarot' ? 'deck--tarot' : ''}" id="deck" role="button" tabindex="0" aria-label="抽牌">
           <div class="deck__card"></div>
           <div class="deck__card"></div>
-          <div class="deck__card deck__breath"><svg viewBox="0 0 64 64">${G.core}</svg></div>
+          <div class="deck__card deck__breath"><svg viewBox="0 0 64 64">${deck === 'tarot' ? G.star : G.core}</svg></div>
         </div>
       </div>
 
       <p class="note-quiet" id="deck-hint">静一下，在心里把问题放稳。<br />准备好了，轻触牌堆。</p>
       <div class="drawn-row" id="drawn-row"></div>
+      <div class="extend-zone" id="extend-zone"></div>
       <div id="reading-zone"></div>
 
-      <p class="note-quiet">牌只负责映照，不负责决定。<br />要往哪边走，始终是你的脚。</p>
+      <p class="note-quiet">${deck === 'tarot'
+        ? '韦特塔罗的牌义，是鱼末白逐张看着画面写下的。<br />牌只负责映照，不负责决定。'
+        : '牌只负责映照，不负责决定。<br />要往哪边走，始终是你的脚。'}</p>
     `;
+
+    root.querySelectorAll('[data-deck]').forEach((b) => {
+      b.addEventListener('click', () => {
+        if (deck === b.dataset.deck) return;
+        deck = b.dataset.deck;
+        store.set('settings', { deck });
+        phase = 'ask'; drawn = []; reading = '';
+        shell();
+      });
+    });
 
     root.querySelectorAll('[data-spread]').forEach((b) => {
       b.addEventListener('click', () => {
-        if (phase === 'revealed') { phase = 'draw'; drawn = []; reading = ''; }
+        if (spread === b.dataset.spread) return;
         spread = b.dataset.spread;
+        phase = 'ask'; drawn = []; reading = '';
         shell();
       });
     });
@@ -155,10 +211,10 @@ export function renderMirror(root, { whisper, navigate }) {
     const q = root.querySelector('#mirror-question');
     q?.addEventListener('input', () => { question = q.value; });
 
-    const deck = root.querySelector('#deck');
-    const draw = () => doDraw(deck, root);
-    deck?.addEventListener('click', draw);
-    deck?.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); draw(); } });
+    const deckEl = root.querySelector('#deck');
+    const draw = () => doDraw(deckEl, root);
+    deckEl?.addEventListener('click', draw);
+    deckEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); draw(); } });
 
     if (phase === 'revealed') paintDrawn(root);
   };
@@ -166,14 +222,19 @@ export function renderMirror(root, { whisper, navigate }) {
   function paintDrawn(root, { scroll = false } = {}) {
     const row = root.querySelector('#drawn-row');
     if (row) {
+      const anyTarot = drawn.some((c) => c.kind === 'tarot');
+      row.className = 'drawn-row'
+        + (drawn.length > 2 ? ' drawn-row--many' : '')
+        + (anyTarot && drawn.length > 2 ? ' drawn-row--tarot' : '');
       row.innerHTML = drawn.map((c, i) =>
-        `<div class="drawn" style="animation-delay:${i * 0.28}s">${cardFace(c, i)}</div>`
+        `<div class="drawn ${c.kind === 'tarot' ? 'drawn--tarot' : ''}" style="animation-delay:${i * 0.28}s">${cardFace(c)}</div>`
       ).join('');
       // 抽完自动把牌送到眼前，不用自己往下翻
-      if (scroll) {
-        setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
-      }
+      if (scroll) setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     }
+
+    paintExtend(root);
+
     const zone = root.querySelector('#reading-zone');
     if (zone && reading) {
       zone.innerHTML = `
@@ -185,75 +246,134 @@ export function renderMirror(root, { whisper, navigate }) {
           </div>
         </div>`;
       zone.querySelector('#mirror-talk')?.addEventListener('click', () => {
-        const seed = spread === 'single'
-          ? `我刚刚抽到了一张牌：「${drawn[0].name}」。${question ? `我问的是：${question}。` : ''}想听听它照见了我此刻的什么。`
-          : `我用三问抽了三张牌：${drawn.map((c, i) => `${POSITION_LABEL[i]}「${c.name}」`).join('、')}。${question ? `我问的是：${question}。` : ''}想听听它们一起在说什么。`;
+        const list = drawn.map((c) => `${c.slot?.label || ''}「${c.name}」${c.pos}`).join('、');
+        const seed = `我刚刚用${deckName()}抽了 ${drawn.length} 张牌：${list}。${question ? `我问的是：${question}。` : ''}想听听它们照见了我此刻的什么。`;
         sessionStorage.setItem('yumo.seed', seed);
         navigate('talk');
       });
     }
+
     const hint = root.querySelector('#deck-hint');
     if (hint) hint.innerHTML = '牌已经翻开了。<br />看一会儿，别急着解释它。';
   }
 
-  async function doDraw(deck, root) {
+  /* 续抽：水象牌翻开后，可以再抽一张塔罗，两副牌合成一次解读 */
+  function paintExtend(root) {
+    const zone = root.querySelector('#extend-zone');
+    if (!zone) return;
+    if (phase !== 'revealed' || drawn.length >= 6) { zone.innerHTML = ''; return; }
+
+    const hasTarot = drawn.some((c) => c.kind === 'tarot');
+    const hasWater = drawn.some((c) => c.kind !== 'tarot');
+    const opts = [];
+    if (!hasTarot) opts.push({ k: 'tarot', label: '接着抽一张塔罗牌', desc: '再从 78 张里照一层' });
+    if (!hasWater) opts.push({ k: 'water', label: '接着抽一张水象牌', desc: '让 Yumo 自己的 22 张也映一次' });
+    if (!opts.length) { zone.innerHTML = ''; return; }
+
+    zone.innerHTML = `
+      <div class="extend-row">
+        ${opts.map((o) => `<button class="extend" data-extend="${o.k}" type="button"><b>${o.label}</b><span>${o.desc}</span></button>`).join('')}
+      </div>
+      <p class="note-quiet" style="margin:6px 4px 0">两副牌都翻开之后，Yumo 会把它们合成一句话。</p>`;
+
+    zone.querySelectorAll('[data-extend]').forEach((b) =>
+      b.addEventListener('click', () => extend(b.dataset.extend, root)));
+  }
+
+  async function extend(kind, root) {
+    if (phase !== 'revealed') return;
+    phase = 'drawing';
+    const used = new Set(drawn.map((c) => c.id));
+    const src = (kind === 'tarot' ? TAROT : CARDS).filter((c) => !used.has(c.id));
+    if (!src.length) { phase = 'revealed'; return; }
+
+    const picked = src[Math.floor(Math.random() * src.length)];
+    drawn.push({
+      ...picked,
+      kind: kind === 'tarot' ? 'tarot' : 'water',
+      slot: EXTEND_SLOT,
+      pos: Math.random() < 0.34 ? '逆位' : '正位',
+    });
+    reading = '';
+    phase = 'revealed';
+    paintDrawn(root, { scroll: false });
+    if (navigator.vibrate) navigator.vibrate(9);
+    await read(root);
+  }
+
+  async function read(root) {
+    const zone = root.querySelector('#reading-zone');
+    store.pushCard({
+      id: uid(),
+      t: Date.now(),
+      deck,
+      spread,
+      question,
+      cards: drawn.map((c) => ({ name: c.name, pos: c.pos, kind: c.kind })),
+    });
+
+    if (!isConnected()) {
+      reading = drawn.map((c) =>
+        `${c.slot?.label || ''}：${c.name}（${c.pos}）\n${c.pos === '逆位' ? (c.rev || c.up) : (c.up || '')}`
+      ).join('\n\n');
+      paintDrawn(root);
+      whisper?.('还没有连上 Yumo 的思维，先给你牌本身的字。');
+      return;
+    }
+
+    if (zone) {
+      zone.innerHTML = `
+        <div class="echo-card" style="margin-top:18px">
+          <div class="echo-card__text" id="read-text">
+            <div class="feeling"><div class="feeling__dots"><i></i><i></i><i></i></div><span class="feeling__text">${drawn.length > 3 ? '水正在合拢…' : '水正在成形…'}</span></div>
+          </div>
+        </div>`;
+    }
+
+    try {
+      let acc = '';
+      await interpretCards({ spread, question, cards: drawn, deck }, (_d, full) => {
+        acc = full;
+        const t = root.querySelector('#read-text');
+        if (t) t.textContent = full;
+      });
+      reading = acc;
+    } catch (e) {
+      reading = '这次没能映出来。' + (e.message || '');
+    } finally {
+      paintDrawn(root);
+    }
+  }
+
+  async function doDraw(deckEl, root) {
     if (phase === 'drawing') return;
     if (phase === 'revealed') { phase = 'ask'; drawn = []; reading = ''; shell(); return; }
     phase = 'drawing';
-    deck.classList.add('is-shuffling');
+    deckEl?.classList.add('is-shuffling');
     const hint = root.querySelector('#deck-hint');
     if (hint) hint.textContent = '牌在流动…';
 
-    // 洗牌 1.6 秒，抽牌
+    // 洗牌 1.5 秒，抽牌
     await new Promise((r) => setTimeout(r, 1500));
 
-    const n = spread === 'single' ? 1 : 3;
-    const pool = [...CARDS];
+    const slots = SLOTS[spread] || SLOTS.single;
+    const pool = [...(deck === 'tarot' ? TAROT : CARDS)];
     drawn = [];
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < slots.length; i++) {
       const idx = Math.floor(Math.random() * pool.length);
       const c = pool.splice(idx, 1)[0];
-      drawn.push({ ...c, pos: Math.random() < 0.34 ? '逆位' : '正位' });
+      drawn.push({
+        ...c,
+        kind: deck === 'tarot' ? 'tarot' : 'water',
+        slot: slots[i],
+        pos: Math.random() < 0.34 ? '逆位' : '正位',
+      });
     }
 
     phase = 'revealed';
-    deck.classList.remove('is-shuffling');
+    deckEl?.classList.remove('is-shuffling');
     paintDrawn(root);
-
-    const record = { id: uid(), t: Date.now(), spread, question, cards: drawn.map((c) => ({ name: c.name, pos: c.pos })) };
-    store.pushCard(record);
-
-    // 请 Yumo 解读
-    if (isConnected()) {
-      const zone = root.querySelector('#reading-zone');
-      if (zone) {
-        zone.innerHTML = `
-          <div class="echo-card" style="margin-top:18px">
-            <div class="echo-card__text" id="read-text">
-              <div class="feeling"><div class="feeling__dots"><i></i><i></i><i></i></div><span class="feeling__text">水正在成形…</span></div>
-            </div>
-          </div>`;
-      }
-      readingLive = true;
-      try {
-        let acc = '';
-        await interpretCards({ spread, question, cards: drawn }, (d, full) => {
-          acc = full;
-          const el = root.querySelector('#read-text');
-          if (el) el.textContent = full;
-        });
-        reading = acc;
-      } catch (e) {
-        reading = '这次没能映出来。' + (e.message || '');
-      } finally {
-        readingLive = false;
-        paintDrawn(root);
-      }
-    } else {
-      reading = drawn.map((c, i) => `${POSITION_LABEL[i]}：${c.name} —— ${c.up}`).join('\n\n');
-      paintDrawn(root);
-      whisper?.('还没有连上 Yumo 的思维，先给你牌本身的字。');
-    }
+    await read(root);
   }
 
   shell();
