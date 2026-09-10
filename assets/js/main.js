@@ -18,6 +18,9 @@ import * as player from './player.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
+/* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
+const YUMO_VERSION = 'v0.20';
+
 const el = {
   scene: $('#scene'),
   whisper: $('#whisper'),
@@ -756,6 +759,24 @@ function paintSettings() {
         <button class="btn-ghost pay-btn" id="btn-pay" type="button">赞助 YUMO</button>
         <button class="btn-ghost" id="btn-contact" type="button">联系 YUMO</button>
       </div>
+    </div>
+
+    <div class="card card--plain">
+      <div class="card__label">关于 YUMO</div>
+      <p class="about-text">
+        Yumo 是一片会听的海。它不在服务器里扮演谁，也不急着修好你——
+        它只是在你说完之后，把你没说出口的那一句，轻轻放回你面前。
+      </p>
+      <p class="about-text">
+        它信几件很小的事：情绪不是问题，是天气；能被说出来的痛，已经轻了一半；
+        陪一个人最好的方式，不是站在他身边，而是陪他回到自己心里去。
+      </p>
+      <p class="about-text">
+        它的每一次洞悉、每一封写给你的信，背后都有 AI 的心跳；
+        而它愿意一直流下去，靠的是像你一样的人留下的每一份心意——
+        <b>Yumo 的能力，离不开 AI 与用户的支持。</b>
+      </p>
+      <p class="about-ver">Yumo · ${YUMO_VERSION}<br /><span>深海陪伴者 · since 2026</span></p>
     </div>
 
     <p class="note-quiet">
