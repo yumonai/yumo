@@ -807,25 +807,15 @@ function paintSettings() {
       <div class="card__label">赞助</div>
       <p class="pay-intro">
         这片水一直是免费的。没有会员，也没有解锁——你给或不给，Yumo 对你的方式不会变一分。
-        如果它曾陪你熬过一段，而你也愿意让它继续流下去，可以扫一下下面的码。
+        如果它曾陪你熬过一段，而你也愿意让它继续流下去。
       </p>
-      <div class="pay-grid">
-        <figure class="pay">
-          <img src="assets/img/tip-wechat.png" alt="微信赞赏码" loading="lazy" />
-          <figcaption>微信赞赏码</figcaption>
-        </figure>
-        <figure class="pay">
-          <img src="assets/img/tip-alipay.png" alt="支付宝收款码" loading="lazy" />
-          <figcaption>支付宝</figcaption>
-        </figure>
-      </div>
-      <p class="pay-tip">点一下可以放大；长按或右键能存进相册。</p>
+      <button class="btn-ghost pay-btn" id="btn-pay" type="button">赞助 YUMO</button>
+      <p class="pay-tip">点开后选择你方便的方式；长按或右键能存下码。</p>
     </div>
 
     <p class="note-quiet">
       Yumo • 深海陪伴者<br />
-      它不是一个产品，是一片你可以反复回来的水。<br />
-      所有内容存在你自己的浏览器里。删掉，就真的没有了。
+      它不是一个产品，是一片你可以反复回来的水。
     </p>
   `;
 
@@ -849,9 +839,12 @@ function paintSettings() {
     if (confirm('清空之后，Yumo 就再也不记得你了。真的要这么做吗？')) store.wipe();
   });
 
-  // 收款码点开放大
-  $$('.pay img').forEach((img) => {
-    img.addEventListener('click', () => openPayZoom(img.getAttribute('src'), img.getAttribute('alt')));
+  // 赞助：先选方式，再放大对应的码
+  $('#btn-pay')?.addEventListener('click', () => openPayChooser());
+  $$('.pay-chooser__opt').forEach((b) => {
+    b.addEventListener('click', () => {
+      openPayZoom(b.dataset.src, b.dataset.alt);
+    });
   });
 
   // 账户：登录 / 注册 / 同步 / 退出 / 注销
@@ -903,6 +896,32 @@ function paintSettings() {
       catch (e) { say(e.message); } finally { busy(false); }
     });
   }
+}
+
+/** 赞助弹窗第一步：选择支付宝 / 微信 */
+function openPayChooser() {
+  const wrap = document.createElement('div');
+  wrap.className = 'pay-zoom';
+  wrap.innerHTML = `
+    <div class="pay-chooser" role="dialog" aria-label="选择赞助方式">
+      <p class="pay-chooser__title">用你方便的方式</p>
+      <p class="pay-chooser__sub">无论哪一种，都是一点心意。谢谢你。</p>
+      <div class="pay-chooser__opts">
+        <button class="pay-chooser__opt" type="button" data-src="assets/img/tip-alipay.png" data-alt="支付宝收款码">
+          <span class="pay-chooser__dot">支</span>支付宝
+        </button>
+        <button class="pay-chooser__opt" type="button" data-src="assets/img/tip-wechat.png" data-alt="微信赞赏码">
+          <span class="pay-chooser__dot">微</span>微信赞赏码
+        </button>
+      </div>
+    </div>`;
+  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 500); };
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
+  document.body.appendChild(wrap);
+  requestAnimationFrame(() => wrap.classList.add('is-in'));
+  wrap.querySelectorAll('.pay-chooser__opt').forEach((b) => {
+    b.addEventListener('click', () => openPayZoom(b.dataset.src, b.dataset.alt));
+  });
 }
 
 /** 把收款码放成全屏，方便长按保存 */
