@@ -26,15 +26,22 @@ export const DEPLOY = {
      model 为空或 apiKey 为空的通道会被忽略，所以
      没配好的那几条放着不动也不会出问题。         */
   PROVIDERS: [
-    /* 智谱 GLM —— 官方文档明确永久免费，中文最好，免绑卡
-       注册后把 key 填进来，就会自动成为主力 */
+    /* 智谱 GLM —— 当前主力。官方文档明确标注免费，中文最好，免绑卡。
+       ⚠️ 模型名是实测挑出来的，别随手改：
+         · glm-4-flash-250414  不思考 → 1~3 秒，6/6 稳。**用的就是它**
+         · glm-4.7-flash       是思考模型：会把 token 全烧在推理上、
+                               正文返回空（finish_reason: length），
+                               实测连打 6 次全被 1305「访问量过大」挡回
+         · glm-4.6v-flash      免费视觉模型（免费档较拥堵，不通会自动跳过） */
     {
       name: 'glm',
       baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-      model: 'glm-4.7-flash',           // 200K 上下文，免费
-      visionModel: 'glm-4.6v-flash',    // 带了图就自动换成这个，免费
-      apiKey: '',                       // ← 填这里
+      model: 'glm-4-flash-250414',      // 128K 上下文
+      visionModel: 'glm-4v-flash',      // 带了图自动换这个（实测 0.6 秒）
+      apiKey: 'fd099e2484994651b61248755f20c14a.AM12qfemxfgCKDwQ',
       vision: true,
+      noThink: true,                    // 思考型模型会返回空正文，必须显式关掉
+      maxTokens: 1024,                  // ⚠️ 智谱视觉模型只收 1~1024，超出直接 1210 报错
     },
 
     /* 火山引擎豆包 —— 每天 200 万 tokens 自动刷新，单日额度最大
@@ -57,7 +64,12 @@ export const DEPLOY = {
       vision: false,                    // 这条看图要另外挑视觉模型
     },
 
-    /* DeepSeek —— 收费，但便宜且稳，留着兜底 */
+    /* DeepSeek —— 保命兜底。GLM 正常时它一次都不会被调用，不产生费用。
+       免费档会周期性排队（实测 glm-4.7-flash 连打 6 次全败），
+       真到那一步它是唯一还能让站点开口的东西。
+
+       想彻底断开：把这一整段删掉即可。
+       更好的做法是拿一把免费的硅基流动钥匙顶上，那样两跳都不花钱。 */
     {
       name: 'deepseek',
       baseUrl: 'https://api.deepseek.com',

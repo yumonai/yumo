@@ -120,7 +120,7 @@ export function channels() {
   const seen = new Set();
   const out = [];
 
-  const add = (base, key, model, vision, visionModel, label) => {
+  const add = (base, key, model, vision, visionModel, label, noThink, maxTokens) => {
     const b = String(base || '').trim();
     const k = String(key || '').trim();
     const m = String(model || '').trim();
@@ -134,12 +134,14 @@ export function channels() {
       model: m,
       vision: vision !== false,
       visionModel: String(visionModel || '').trim(),
+      noThink: !!noThink,
+      maxTokens: Number(maxTokens) > 0 ? Number(maxTokens) : 1200,
       label,
     });
   };
 
   for (const p of DEPLOY.PROVIDERS || []) {
-    add(p.baseUrl, p.apiKey, p.model, p.vision, p.visionModel, p.name || 'deploy');
+    add(p.baseUrl, p.apiKey, p.model, p.vision, p.visionModel, p.name || 'deploy', p.noThink, p.maxTokens);
   }
   add(s.baseUrl, s.apiKey, s.model, true, '', 'self');
 
@@ -189,7 +191,7 @@ export async function stream(messages, { onDelta, signal, temperature } = {}) {
       if (e?.name === 'AbortError') throw e;   // 访客自己按了停
       if (said) throw e;                        // 已经开口了，不能中途换人
       last = e;
-      console.warn(`[yumo] 通道「${ch.label}」没通，换下一条：`, e?.message || e);
+      console.warn(`[yumo] 通道「${ch.label}」没通（${e?.status || '-'}），换下一条：`, e?.message || e);
     }
   }
   throw last || new AIError('我这边断了线。晚一点再来找我。', 'auth', 0);
@@ -214,12 +216,15 @@ async function streamVia(ch, messages, { onDelta, signal, temperature } = {}) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${ch.key}`,
     },
+    /* 思考型模型（如智谱的 *-flash 新档）会把 token 用在推理上、
+       正文返回空。这条通道标了 noThink 就显式关掉它的思考。 */
     body: JSON.stringify({
       model,
       messages: m,
       temperature,
       stream: true,
-      max_tokens: 1200,
+      max_tokens: ch.maxTokens,   // 各家上限不一样，超出会被判成参数非法
+      ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
     }),
     signal,
   });
@@ -278,6 +283,11 @@ async function streamVia(ch, messages, { onDelta, signal, temperature } = {}) {
       } catch { /* 不完整的行，跳过 */ }
     }
   }
+
+  /* 一个字都没说出来（思考型模型 token 用尽就会这样）。
+     当成失败抛出去，让上层换下一条通道——别给访客一片空白。 */
+  if (!full.trim()) throw new AIError('这一次它没有说出话。', 'server', 0);
+
   return full;
 }
 
@@ -299,6 +309,7 @@ async function complete(messages, { temperature = 0.4, json = false } = {}) {
           temperature,
           max_tokens: 600,
           stream: false,
+          ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
           ...(json ? { response_format: { type: 'json_object' } } : {}),
         }),
       });
