@@ -285,8 +285,10 @@ async function send() {
   el.springState.textContent = '正在感受你说的话…';
 
   const settings = store.get('settings');
-  const sys = ai.buildSystemPrompt({ deep: !!settings.deepMode });
   const history = store.recentTurns(18);
+  // 取最后一句用户原话交给危机识别——由代码判定，不依赖模型自觉
+  const lastUser = [...history].reverse().find((m) => m.role === 'user' && typeof m.content === 'string')?.content || '';
+  const sys = ai.buildSystemPrompt({ deep: !!settings.deepMode, lastUser });
   const feel = showFeeling();
 
   let acc = '';

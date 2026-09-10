@@ -9,8 +9,8 @@ const NS = 'yumo.v1.';
 const DEFAULTS = {
   settings: {
     apiKey: '',
-    baseUrl: 'https://api.deepseek.com',
-    model: 'deepseek-flash', // 上游模型 · 原生多模态
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    model: 'glm-4-flash-250414', // 访客自填钥匙时的默认上游（智谱，免费档）
     temperature: 1.0,
     autoDigest: true,        // 自动提炼记忆与画像
     deepMode: false,         // 深潜模式

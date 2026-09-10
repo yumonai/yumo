@@ -20,6 +20,7 @@ export const DEPLOY = {
      按顺序尝试：前一条不通（钥匙过期 / 额度用光 / 限流 /
      网络不通），就自动换下一条，访客察觉不到。
 
+     当前是两跳：智谱 GLM（在跑）→ 硅基流动（待领券激活）。
      哪一条的 apiKey 是空的，就跳过哪一条。
      想让某个模型当主力，把它排到前面就行。
 
@@ -54,19 +55,30 @@ export const DEPLOY = {
       vision: true,
     },
 
-    /* 硅基流动 —— 免费的兜底，另一家供应商，智谱排队时它能顶上
-       ⚠️ 现在这条「还不会生效」：实测该账号所有模型都返回
-          30001 Sorry, your account balance is insufficient，
-          连官方标注免费的 THUDM/GLM-4-9B-0414 也一样。
-          原因：硅基流动的免费模型要求先完成「实名认证」，
-          未实名时所有模型都按收费计，余额为 0 就一律拒。
-          → 去 cloud.siliconflow.cn 做实名，做完这条会自动开始工作，代码不用改。
+    /* 硅基流动 —— 第二跳，另一家供应商，智谱排队时它能顶上
 
-       实测的免费名单（2026-08 快照，会变）：
-         THUDM/GLM-4-9B-0414     对话，非思考型 ← 用这个
-         THUDM/GLM-Z1-9B-0414    是思考型，会慢且可能吐空正文
-         PaddlePaddle/PaddleOCR-VL-1.5  OCR 专用，不适合聊天
-         tencent/Hunyuan-MT-7B   翻译专用
+       ⚠️ 现在这条「还不会生效」。2026-09-10 复测（账号已完成实名）：
+          该账号对**所有**模型一律返回
+            30001 Sorry, your account balance is insufficient
+          连官方标注「永久免费」的 Qwen/Qwen3-8B、Qwen/Qwen2.5-7B-Instruct
+          也一样。也就是说：免费模型并不豁免余额检查。
+
+          密钥本身是有效的（GET /v1/models 返回 200）；
+          同一批测试里还出现了 30003 Model disabled、
+          20012 Model does not exist —— 说明模型名错误会被明确报出来，
+          而这几条只报 30001，就是纯粹卡在余额这一关。
+
+          → 去 cloud.siliconflow.cn 的【活动中心 → 认证专享礼】，
+            领取「16 元认证奖励券」（以及新人免费额度）。
+            领完余额 > 0，这条通道立刻开始工作，代码一个字都不用改。
+
+       模型可用性（2026-09 实测）：
+         THUDM/GLM-4-9B-0414            ← 当前选用：非思考型，不会吐空正文
+         Qwen/Qwen3-8B                  官方明确标注永久免费，可作备选
+                                          （若改用它且回复为空，说明开了思考模式）
+         Qwen/Qwen2.5-7B-Instruct       可作备选
+         deepseek-ai/DeepSeek-R1-Distill-Qwen-7B  → 30003 已停用，别用
+         THUDM/glm-4-flash                        → 20012 不存在，别用
        注意：Qwen 的 3.5/3.6 系列看着像小模型，实际是收费的。 */
     {
       name: 'siliconflow',
@@ -76,19 +88,8 @@ export const DEPLOY = {
       vision: false,                    // 免费名单里没有可用的对话视觉模型
     },
 
-    /* DeepSeek —— 保命兜底。GLM 正常时它一次都不会被调用，不产生费用。
-       免费档会周期性排队（实测 glm-4.7-flash 连打 6 次全败），
-       真到那一步它是唯一还能让站点开口的东西。
-
-       想彻底断开：把这一整段删掉即可。
-       更好的做法是拿一把免费的硅基流动钥匙顶上，那样两跳都不花钱。 */
-    {
-      name: 'deepseek',
-      baseUrl: 'https://api.deepseek.com',
-      model: 'deepseek-flash',
-      apiKey: 'sk-53c908b5a5c140f4893156c1f602367e',
-      vision: true,
-    },
+    /* 第三跳：DeepSeek —— 已于 2026-09-10 按你的要求完全撤下。
+       （原主钥匙 sk-53c908… 已作废，如仍在使用请去后台删除。） */
   ],
 
   /* 访客第一次打开时，是否替他接上（钥匙留在配置文件里，不进他的浏览器） */
