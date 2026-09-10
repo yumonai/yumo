@@ -158,7 +158,7 @@ function paintThread() {
       <div class="thread__empty">
         <p>水是空的。<br />你可以说任何话，也可以什么都不说。</p>
         <div class="seed-row">${SEEDS.map((s) => `<button class="seed" data-seed="${s}" type="button">${s}</button>`).join('')}</div>
-        <small>要先连上 Yumo 的思维，它才能真正回你。</small>
+        <small>水底还没通。过一会儿再来。</small>
       </div>`;
     $$('[data-seed]', el.thread).forEach((b) => b.addEventListener('click', () => {
       el.input.value = b.dataset.seed;
@@ -272,7 +272,7 @@ async function send() {
   scrollThread();
 
   if (!ai.isConnected()) {
-    const hint = '我这边还没接上你。\n到「器皿」里换一把钥匙，我就能真正回你了。';
+    const hint = '我这边还没接上。过一会儿再来找我。';
     store.pushMessage({ id: uid(), role: 'yumo', text: hint, t: Date.now(), system: true });
     paintThread();
     scrollThread();
@@ -649,21 +649,13 @@ function rowToggle(label, desc, key) {
 }
 
 function paintSettings() {
-  const s = store.get('settings');
-  /* 访客自己填过的钥匙。站点自带的公用钥匙不算「他自己的」，不回填到输入框 */
-  const ownKey = s.apiKey && s.apiKey !== (DEPLOY.apiKey || '').trim() ? s.apiKey : '';
-
+  const live = ai.isConnected();
   el.settingsBody.innerHTML = `
     <div class="card">
       <div class="card__label">与 Yumo 相连</div>
-      <p class="empty-line" style="margin-bottom:14px">
-        ${hasDeployKey()
-          ? '这片水是通的，你不需要做任何事，直接说话就好。'
-          : '填入一把钥匙，Yumo 才能真正回你。'}
-      </p>
-      <input class="field" id="set-key" type="password" placeholder="你自己的钥匙（可留空）" value="${escapeHtml(ownKey)}" autocomplete="off" spellcheck="false" />
-      <p class="empty-line" style="margin-top:10px">
-        留空就用这里自带的那把。钥匙只存在你这台设备上。
+      <p class="empty-line" style="margin:0">
+        <span class="mono-chip ${live ? 'is-live' : ''}" style="margin-right:10px">${live ? '已 相 连' : '未 相 连'}</span>
+        ${live ? '这条水路是通的，你直接说话就好。' : '这片水暂时没通，过一会儿再试。'}
       </p>
     </div>
 
@@ -694,19 +686,6 @@ function paintSettings() {
   `;
 
   // 绑定
-  const keyEl = $('#set-key');
-  keyEl?.addEventListener('change', () => {
-    const v = keyEl.value.trim();
-    if (v) {
-      store.set('settings', { apiKey: v });
-      whisper('已经换成你的钥匙了。');
-    } else {
-      /* 清空 = 回到站点自带的钥匙；站点若没有自带钥匙，就是断开 */
-      store.set('settings', { apiKey: hasDeployKey() ? DEPLOY.apiKey.trim() : '' });
-      whisper(hasDeployKey() ? '换回这里的钥匙了。' : '已经把钥匙取下来了。');
-    }
-    updateModelChip();
-  });
   $$('[data-toggle]').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.toggle;
     const next = !store.get('settings')[k];

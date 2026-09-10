@@ -124,9 +124,10 @@ export function isConnected() {
 }
 
 function friendlyError(status, body) {
-  /* 上游的原始报错不外露，只说 Yumo 自己的话 */
-  if (status === 401 || status === 403) return new AIError('这把钥匙好像不对。到「器皿」里重新填一次。', 'auth', status);
-  if (status === 402) return new AIError('这把钥匙的额度用完了。缓一缓，或者换一把。', 'balance', status);
+  /* 上游的原始报错不外露，只说 Yumo 自己的话。
+     访客没有「换钥匙」的入口，所以这些话不能让他去做任何操作。 */
+  if (status === 401 || status === 403) return new AIError('我这边断了线。晚一点再来找我。', 'auth', status);
+  if (status === 402) return new AIError('今天的水有点浅。晚一点再来，我在。', 'balance', status);
   if (status === 429) return new AIError('说得太快，水面还没平。等一会儿再说。', 'rate', status);
   if (status === 400) return new AIError('这句话没能送出去，换个说法再试一次。', 'config', status);
   if (status >= 500) return new AIError('远端的水位有点问题，稍后再试。', 'server', status);

@@ -21,7 +21,6 @@ const SOUNDS = [
   { id: 'wind',  name: '风 过',  desc: '从很远的地方来',    icon: 'wind'  },
   { id: 'deep',  name: '深 压',  desc: '水底的低鸣',        icon: 'deep'  },
   { id: 'bowl',  name: '钵 音',  desc: '偶尔一声，很久才散', icon: 'bowl'  },
-  { id: 'cave',  name: '空 腔',  desc: '像在一口井里',      icon: 'cave'  },
 ];
 
 const CEIL = 0.9;          // 单路音量上限，留出叠加余量
@@ -315,56 +314,6 @@ export class Soundscape {
     return { src, out, extra, base: 0.52, spark: 'bubble' };
   }
 
-  /**
-   * 空腔：像在一口井里。
-   * 「空洞」不是一个高频窄带能给出的 —— 那是哨音。
-   * 空腔感来自几个低中频的共振峰（像对着瓶口吹气），
-   * 再加上四个不同距离的早期反射，才有空间的体积。
-   */
-  _buildCave() {
-    const ctx = this.ctx;
-    const out = ctx.createGain();
-    out.gain.value = FLOOR;
-    out.connect(this.bus);
-
-    // ① 腔体的三个共振峰
-    const src = this._noiseSource();
-    src.playbackRate.value = 0.44;
-    const bed = this._filter('lowpass', 1900, 0.7);
-    src.connect(bed);
-
-    const resos = [[186, 4.6, 0.5], [468, 5.6, 0.34], [1140, 6.4, 0.2]].map(([f, q, a]) => {
-      const bp = this._filter('bandpass', f, q);
-      const g = ctx.createGain(); g.gain.value = a;
-      bed.connect(bp); bp.connect(g);
-      return { bp, g };
-    });
-
-    const mod = ctx.createGain(); mod.gain.value = 0.3;
-    resos.forEach((r) => r.g.connect(mod));
-    mod.connect(out);
-    src.start();
-
-    // ② 四个不同距离、不同方位的早期反射 —— 让空间有体积，而不是金属弹簧
-    const taps = [[0.083, 0.3, -0.8], [0.147, 0.24, 0.7], [0.241, 0.18, -0.4], [0.377, 0.12, 0.9]];
-    taps.forEach(([t, a, pan]) => {
-      const d = ctx.createDelay(1.2);
-      d.delayTime.value = t;
-      const g = ctx.createGain(); g.gain.value = a;
-      mod.connect(d); d.connect(g);
-      this._connectTo(g, pan, out);   // 反射同样受这一路的音量控制
-    });
-
-    const extra = [
-      this._lfo(0.031, 0.1, mod.gain, 0.3),
-      this._lfo(0.017, 52, resos[0].bp.frequency, 186),
-      this._lfo(0.023, 96, resos[1].bp.frequency, 468),
-      this._lfo(0.013, 190, resos[2].bp.frequency, 1140),
-      src,
-    ];
-    return { src, out, extra, base: 0.46, spark: 'drip' };
-  }
-
   /** 钵音：不常出现，出现就很久才散 */
   _buildBowl() {
     const out = this.ctx.createGain();
@@ -434,11 +383,10 @@ export class Soundscape {
         // 雨是一片，不是一颗：每次 tick 撒下一小把，时间上打散
         const n = 3 + Math.round(lv * 9);
         for (let i = 0; i < n; i++) this._drop(lv, Math.random() * SPARK_TICK, node.out);
-      } else {
-        // 气泡与滴水是零星的：出现频率跟着音量走
+      } else if (node.spark === 'bubble') {
+        // 气泡是零星的：出现频率跟着音量走
         if (Math.random() > lv * 0.85) continue;
-        if (node.spark === 'bubble') this._bubble(lv, node.out);
-        else if (node.spark === 'drip') this._drip(lv, node.out);
+        this._bubble(lv, node.out);
       }
     }
   }
@@ -496,36 +444,6 @@ export class Soundscape {
     o.stop(now + dur + 0.06);
   }
 
-  /** 洞里的一滴水：一点高音，尾巴交给带阻尼的短回响 */
-  _drip(intensity = 1, dest) {
-    const ctx = this.ctx;
-    const now = ctx.currentTime;
-    const o = ctx.createOscillator();
-    o.type = 'sine';
-    const f = 780 + Math.random() * 1400;
-    o.frequency.setValueAtTime(f, now);
-    o.frequency.exponentialRampToValueAtTime(f * 0.5, now + 0.1);
-    const g = ctx.createGain();
-    const dur = 0.14 + Math.random() * 0.12;
-    g.gain.setValueAtTime(FLOOR, now);
-    g.gain.exponentialRampToValueAtTime(0.17 * intensity, now + 0.005);
-    g.gain.exponentialRampToValueAtTime(FLOOR, now + dur);
-    o.connect(g);
-    this._connectTo(g, Math.random() * 1.4 - 0.7, dest);
-    // 一小段带阻尼的反馈：越回越暗，像井壁吸掉高频
-    const dly = ctx.createDelay(1.5);
-    dly.delayTime.value = 0.19;
-    const dlp = this._filter('lowpass', 2400, 0.7);
-    const fb = ctx.createGain(); fb.gain.value = 0.34;
-    const wet = ctx.createGain(); wet.gain.value = 0.3;
-    g.connect(dly); dly.connect(dlp);
-    dlp.connect(fb); fb.connect(dly);
-    dlp.connect(wet);
-    this._connectTo(wet, -0.3, dest);
-    o.start(now);
-    o.stop(now + dur + 0.06);
-  }
-
   /* ── 对外接口 ── */
 
   get list() { return SOUNDS; }
@@ -566,7 +484,7 @@ export class Soundscape {
     }
     const builder = {
       tide: '_buildTide', rain: '_buildRain', wind: '_buildWind',
-      deep: '_buildDeep', bowl: '_buildBowl', cave: '_buildCave',
+      deep: '_buildDeep', bowl: '_buildBowl',
     }[id];
     if (!builder) return;
     const node = this[builder]();
@@ -601,12 +519,13 @@ export class Soundscape {
   /** 一键进入某种氛围 */
   preset(kind) {
     const presets = {
-      sleep:   { tide: 0.5, deep: 0.55, bowl: 0.4, rain: 0.18, wind: 0, cave: 0 },
-      focus:   { tide: 0.22, deep: 0.3, cave: 0.3, rain: 0.32, wind: 0.1, bowl: 0 },
-      release: { tide: 0.62, wind: 0.3, bowl: 0.45, deep: 0.25, rain: 0, cave: 0.12 },
-      rain:    { rain: 0.62, tide: 0.26, cave: 0.1, wind: 0.14, deep: 0.2, bowl: 0.18 },
-      ocean:   { tide: 0.78, wind: 0.24, deep: 0.36, bowl: 0.2, rain: 0, cave: 0 },
-      off:     { tide: 0, rain: 0, wind: 0, deep: 0, bowl: 0, cave: 0 },
+      /* 空腔撤掉后，它原来那点音量匀给了同为「气与空间」的风过 */
+      sleep:   { tide: 0.5, deep: 0.55, bowl: 0.4, rain: 0.18, wind: 0 },
+      focus:   { tide: 0.22, deep: 0.3, rain: 0.32, wind: 0.28, bowl: 0 },
+      release: { tide: 0.62, wind: 0.4, bowl: 0.45, deep: 0.25, rain: 0 },
+      rain:    { rain: 0.68, tide: 0.26, wind: 0.14, deep: 0.2, bowl: 0.18 },
+      ocean:   { tide: 0.78, wind: 0.24, deep: 0.36, bowl: 0.2, rain: 0 },
+      off:     { tide: 0, rain: 0, wind: 0, deep: 0, bowl: 0 },
     };
     const p = presets[kind] || presets.off;
     SOUNDS.forEach((s) => this.set(s.id, p[s.id] ?? 0));
@@ -654,5 +573,4 @@ export const ICONS = {
   wind:  '<path d="M3 8h9a2.5 2.5 0 100-5M3 12h13.5a2.5 2.5 0 110 5M3 16h6"/>',
   deep:  '<path d="M4 10c0 4 3.6 7 8 7s8-3 8-7M8 4.5v3M16 4.5v3M12 3v4.5"/><circle cx="12" cy="12" r="1.6"/>',
   bowl:  '<path d="M4 10.5h16A8 8 0 0112 18a8 8 0 01-8-7.5z"/><path d="M12 6.5V4M9 5.2l-1-2M15 5.2l1-2"/>',
-  cave:  '<path d="M4 19v-6a8 8 0 0116 0v6"/><path d="M9 19v-4a3 3 0 016 0v4"/>',
 };
