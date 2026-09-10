@@ -54,14 +54,26 @@ export const DEPLOY = {
       vision: true,
     },
 
-    /* 硅基流动 —— 9B 以下模型永久免费，国内直连
-       model 请照控制台「免费模型」列表里的全名填 */
+    /* 硅基流动 —— 免费的兜底，另一家供应商，智谱排队时它能顶上
+       ⚠️ 现在这条「还不会生效」：实测该账号所有模型都返回
+          30001 Sorry, your account balance is insufficient，
+          连官方标注免费的 THUDM/GLM-4-9B-0414 也一样。
+          原因：硅基流动的免费模型要求先完成「实名认证」，
+          未实名时所有模型都按收费计，余额为 0 就一律拒。
+          → 去 cloud.siliconflow.cn 做实名，做完这条会自动开始工作，代码不用改。
+
+       实测的免费名单（2026-08 快照，会变）：
+         THUDM/GLM-4-9B-0414     对话，非思考型 ← 用这个
+         THUDM/GLM-Z1-9B-0414    是思考型，会慢且可能吐空正文
+         PaddlePaddle/PaddleOCR-VL-1.5  OCR 专用，不适合聊天
+         tencent/Hunyuan-MT-7B   翻译专用
+       注意：Qwen 的 3.5/3.6 系列看着像小模型，实际是收费的。 */
     {
       name: 'siliconflow',
       baseUrl: 'https://api.siliconflow.cn/v1',
-      model: 'Qwen/Qwen3-8B',
-      apiKey: '',                       // ← 填这里
-      vision: false,                    // 这条看图要另外挑视觉模型
+      model: 'THUDM/GLM-4-9B-0414',
+      apiKey: 'sk-kxrzpfwazsndxewucvrpmkecmgywpzzzhsbrenttqcostpcq',
+      vision: false,                    // 免费名单里没有可用的对话视觉模型
     },
 
     /* DeepSeek —— 保命兜底。GLM 正常时它一次都不会被调用，不产生费用。
