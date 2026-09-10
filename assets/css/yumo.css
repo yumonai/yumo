@@ -164,7 +164,6 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 .threshold > *{flex:none}
 /* 空间够时整块居中；手机太矮时自动从上方开始 */
 .threshold > .threshold__sigil{margin-top:auto}
-.threshold > .threshold__foot{margin-bottom:auto}
 /* 月印 —— 门槛上方的第一件东西 */
 .threshold__sigil{
   width:clamp(102px,26vw,146px);aspect-ratio:1;flex:none;
@@ -258,11 +257,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 .sink-btn:active{transform:scale(.97)}
 .sink-btn,.sink-btn *{transition:transform var(--dur-slow) var(--ease-soft)}
 
-.threshold__foot{
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;
-  margin-top:clamp(16px,3vh,30px);
-  animation:rise-in 2.4s 1.2s var(--ease-soft) both;
-}
+
 .link-quiet{
   font-size:12.5px;letter-spacing:.14em;color:var(--mist-300);
   transition:color var(--dur-med) var(--ease-soft);text-decoration:none;
@@ -1069,8 +1064,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   .threshold__line{font-size:clamp(21px,5.7vw,28px);margin-bottom:14px}
   .threshold__sub{font-size:12.5px;line-height:1.95}
   .sink-btn{width:clamp(96px,25vw,112px);height:clamp(96px,25vw,112px)}
-  .threshold__foot{margin-top:clamp(12px,2.2vh,22px)}
-}
+  }
 @media (max-height:620px){
   .core{width:128px}
   .spring__hints{padding-top:4px}
@@ -1383,3 +1377,76 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   margin:13px 0 0;text-align:center;
   font-size:10.5px;letter-spacing:.22em;text-indent:.22em;color:var(--mist-400);
 }
+
+/* ── Yumo 形象 · 气泡水母 ───────────────────── */
+.threshold__sigil{position:relative}
+.threshold__jelly{
+  position:absolute;left:50%;top:44.2%;width:41%;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 3px 18px rgba(240,250,255,.34));
+  animation:jelly-drift 7s var(--ease-soft) infinite;
+  pointer-events:none;
+}
+.core__jelly{
+  position:absolute;left:50%;top:46%;width:54%;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 10px 30px rgba(240,250,255,.26));
+  animation:jelly-drift 8.5s var(--ease-soft) infinite;
+  pointer-events:none;
+}
+@keyframes jelly-drift{
+  0%,100%{transform:translate(-50%,-53%)}
+  50%{transform:translate(-50%,-46%)}
+}
+
+/* ── 进入之前的账户门 ───────────────────────── */
+.gate{
+  position:fixed;inset:0;z-index:125;
+  display:flex;align-items:center;justify-content:center;padding:20px 16px;
+  background:rgba(2,5,9,.82);backdrop-filter:var(--blur-modal);-webkit-backdrop-filter:var(--blur-modal);
+  opacity:0;transition:opacity var(--dur-med) var(--ease-soft);
+}
+.gate.is-in{opacity:1}
+.gate__card{
+  width:min(92vw,400px);padding:30px 26px 24px;border-radius:var(--r-md);
+  background:linear-gradient(168deg,rgba(16,26,38,.96),rgba(8,14,22,.98));
+  border:1px solid var(--line-strong);box-shadow:var(--shadow-modal);
+  transform:translateY(14px);transition:transform var(--dur-slow) var(--ease-soft);
+}
+.gate.is-in .gate__card{transform:none}
+.gate__title{
+  margin:0 0 8px;font-family:var(--font-serif);font-size:19px;
+  letter-spacing:.14em;color:var(--mist-050);
+}
+.gate__sub{margin:0 0 20px;font-size:11.5px;line-height:1.9;letter-spacing:.04em;color:var(--mist-400)}
+.gate__field{display:block;margin-bottom:14px}
+.gate__field span{
+  display:block;font-size:10px;letter-spacing:.22em;color:var(--mist-400);margin-bottom:6px;
+}
+.gate__field input{
+  width:100%;padding:11px 12px;border-radius:var(--r-xs);
+  border:1px solid var(--line);background:rgba(210,236,250,.04);
+  color:var(--mist-050);font-size:14px;letter-spacing:.02em;
+  transition:border-color var(--dur-fast) var(--ease-soft);
+}
+.gate__field input:focus{outline:none;border-color:var(--tide-400)}
+.gate__field input::placeholder{color:var(--mist-400);opacity:.55}
+.gate__err{
+  margin:0 0 12px;font-size:11px;line-height:1.7;letter-spacing:.03em;
+  color:#e8b4a8;
+}
+.gate__go{
+  display:block;width:100%;margin-top:6px;padding:13px;
+  border-radius:var(--r-pill);border:1px solid var(--tide-300);
+  background:linear-gradient(140deg,var(--tide-100),var(--tide-300));
+  color:var(--abyss-050);font-size:13.5px;letter-spacing:.3em;text-indent:.3em;
+  cursor:pointer;transition:box-shadow var(--dur-med) var(--ease-soft),transform var(--dur-med) var(--ease-soft);
+}
+.gate__go:hover{box-shadow:0 12px 36px rgba(121,186,211,.32);transform:translateY(-1px)}
+.gate__go:disabled{opacity:.55;cursor:wait;transform:none}
+.gate__swap{
+  display:block;width:100%;margin-top:14px;padding:6px;border:none;background:none;
+  font-size:11px;letter-spacing:.08em;color:var(--mist-400);cursor:pointer;
+  transition:color var(--dur-fast) var(--ease-soft);
+}
+.gate__swap:hover{color:var(--tide-200)}

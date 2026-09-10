@@ -957,7 +957,8 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-close="drawer"]')) { el.drawer.hidden = true; return; }
 });
 
-$('#btn-dive')?.addEventListener('click', () => {
+/* 沉入 —— 有账户的直接进；这台设备上没有记录的，先建账户（或登录） */
+function doDive() {
   store.set('flags', { dived: true });
   // 借用户手势把音频解锁（浏览器只允许在手势里启动 AudioContext）
   applySoundVolume();
@@ -968,7 +969,98 @@ $('#btn-dive')?.addEventListener('click', () => {
       ? '你回来了。'
       : '水很静。我在这里。';
   }, 900);
+}
+
+const GATE_EMAIL_KEY = 'yumo.v1.gate-email';
+let gateMode = 'register';
+
+function setGateMode(mode, knownEmail = '') {
+  gateMode = mode;
+  const swap = $('#gate-swap');
+  const pass = $('#gate-pass');
+  if (mode === 'register') {
+    swap.textContent = '已经有账号？登录';
+    pass.setAttribute('autocomplete', 'new-password');
+    pass.placeholder = '设置密码 · 至少 6 位';
+  } else {
+    swap.textContent = '还没有账号？创建一个';
+    pass.setAttribute('autocomplete', 'current-password');
+    pass.placeholder = '你的密码';
+  }
+  if (knownEmail) $('#gate-email').value = knownEmail;
+}
+
+function gateErr(msg) {
+  const e = $('#gate-err');
+  if (!e) return;
+  e.textContent = msg || '';
+  e.hidden = !msg;
+}
+
+function closeGate() {
+  const g = $('#gate');
+  g.classList.remove('is-in');
+  setTimeout(() => { g.hidden = true; }, 700);
+}
+
+async function gateSubmit() {
+  const email = $('#gate-email').value.trim();
+  const pass = $('#gate-pass').value;
+  const go = $('#gate-go');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { gateErr('邮箱看起来不太对，再看一眼。'); return; }
+  if (pass.length < 6) { gateErr('密码至少 6 位。'); return; }
+
+  gateErr('');
+  go.disabled = true;
+  go.textContent = gateMode === 'register' ? '正在为你建账户…' : '正在下沉…';
+  try {
+    if (gateMode === 'register') await account.signUp(email, pass);
+    else {
+      await account.signIn(email, pass);
+      account.pullFromCloud().catch(() => {});   // 老账户新设备：把云端的记忆接回来
+    }
+    localStorage.setItem(GATE_EMAIL_KEY, email);
+    closeGate();
+    doDive();
+  } catch (e) {
+    const raw = String(e?.message || e || '');
+    const map = [
+      [/invalid login credentials/i, '邮箱或密码不对，再试一次。'],
+      [/user already registered/i, '这个邮箱已经注册过——点下面「登录」。'],
+      [/at least 6 characters/i, '密码至少 6 位。'],
+      [/rate limit|too many/i, '尝试太多次了，过一会儿再来。'],
+      [/unable to validate email/i, '邮箱域名好像不存在，换一个试试。'],
+      [/signups not allowed/i, '现在暂时不能注册，请联系 yumokunai@gmail.com。'],
+    ];
+    gateErr(map.find(([re]) => re.test(raw))?.[1] || `出了点小差错：${raw.slice(0, 80)}`);
+  } finally {
+    go.disabled = false;
+    go.textContent = '沉入';
+  }
+}
+
+$('#btn-dive')?.addEventListener('click', () => {
+  if (account.enabled && !account.isSignedIn()) {
+    const known = localStorage.getItem(GATE_EMAIL_KEY) || '';
+    setGateMode(known ? 'login' : 'register', known);
+    const g = $('#gate');
+    g.hidden = false;
+    requestAnimationFrame(() => g.classList.add('is-in'));
+    setTimeout(() => (known ? $('#gate-pass') : $('#gate-email'))?.focus(), 650);
+    return;
+  }
+  doDive();
 });
+
+$('#gate-go')?.addEventListener('click', gateSubmit);
+$('#gate-pass')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') gateSubmit(); });
+$('#gate-email')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#gate-pass')?.focus(); });
+$('#gate-swap')?.addEventListener('click', () => {
+  setGateMode(gateMode === 'register' ? 'login' : 'register');
+  gateErr('');
+});
+/* 点暗处 = 先不进了，留在门槛上 */
+$('#gate')?.addEventListener('click', (e) => { if (e.target.id === 'gate') closeGate(); });
 
 $('#core')?.addEventListener('click', () => navigate('talk'));
 $('#core')?.addEventListener('keydown', (e) => {

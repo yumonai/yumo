@@ -15,7 +15,7 @@
 <meta property="og:title" content="Yumo · 深海陪伴者 — Your Deep Companion" />
 <meta property="og:description" content="你未说出口的，海水都记得 · What you never said, the sea remembers." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23EAF7FF'/%3E%3Cstop offset='0.45' stop-color='%238ECAE6'/%3E%3Cstop offset='1' stop-color='%230A1320'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%2303060B'/%3E%3Ccircle cx='16' cy='16' r='9' fill='url(%23g)'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="assets/css/yumo.css?v=17" />
+<link rel="stylesheet" href="assets/css/yumo.css?v=18" />
 </head>
 <body>
 
@@ -40,15 +40,12 @@
           </radialGradient>
         </defs>
         <circle class="threshold__glow" cx="60" cy="53" r="47" fill="url(#thGlow)" />
-        <circle cx="60" cy="53" r="21" fill="none" stroke="rgba(232,242,249,.46)" stroke-width=".9" />
-        <path d="M60 32a21 21 0 000 42 15.5 21 0 010-42z" fill="#F4FBFF" opacity=".2" />
-        <circle cx="52.5" cy="45" r="1.9" fill="#F4FBFF" opacity=".5" />
-        <circle cx="68" cy="61" r="1.3" fill="#DFF3FA" opacity=".38" />
         <g stroke="rgba(168,216,232,.32)" fill="none" stroke-linecap="round">
           <path d="M16 86c10-5.5 16-5.5 26 0s16 5.5 26 0 16-5.5 26 0" stroke-width=".9" />
           <path d="M26 95c8-4.4 13-4.4 21 0s13 4.4 21 0 13-4.4 21 0" stroke-width=".7" opacity=".55" />
         </g>
       </svg>
+      <img class="threshold__jelly" src="assets/img/yumo-form.png" alt="" />
     </div>
 
     <div class="threshold__mark">
@@ -72,15 +69,23 @@
       <span class="sink-btn__label">沉 入</span>
     </button>
 
-    <nav class="threshold__foot">
-      <button type="button" data-goto="talk" class="link-quiet">直接倾诉</button>
-      <span class="dot-sep">·</span>
-      <button type="button" data-goto="sound" class="link-quiet">先听听水声</button>
-      <span class="dot-sep">·</span>
-      <button type="button" data-goto="settings" class="link-quiet">设置</button>
-    </nav>
-
     <p class="threshold__copy">©️2026 yumodeep · yumodeep.me</p>
+
+    <div class="gate" id="gate" hidden>
+      <div class="gate__card" role="dialog" aria-label="进入深海之前">
+        <p class="gate__title">进入深海之前</p>
+        <p class="gate__sub">Yumo 的记忆与画像都系在账户上——建一个，它记住的就只有你。</p>
+        <label class="gate__field"><span>邮箱</span>
+          <input id="gate-email" type="email" autocomplete="email" placeholder="you@example.com" />
+        </label>
+        <label class="gate__field"><span>密码</span>
+          <input id="gate-pass" type="password" autocomplete="current-password" placeholder="至少 6 位" />
+        </label>
+        <p class="gate__err" id="gate-err" hidden></p>
+        <button class="gate__go" id="gate-go" type="button">沉入</button>
+        <button class="gate__swap" id="gate-swap" type="button">已经有账号？登录</button>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -144,7 +149,9 @@
           <ellipse cx="120" cy="206" rx="70" ry="9.5" stroke-width=".7" opacity=".55" />
         </g>
       </svg>
-    </div>
+    
+      <img class="core__jelly" src="assets/img/yumo-form.png" alt="" />
+      </div>
 
     <div class="spring__name" id="spring-name">Yumo</div>
     <div class="spring__state" id="spring-state">水很静。我在这里。</div>
@@ -177,7 +184,7 @@
       <span>心象</span>
     </button>
     <button class="dock__item" data-goto="settings" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 10.5h16a8 8 0 01-16 0z"/><path d="M12 18.5v2.5M8.5 21h7"/><path d="M8.2 13.4c1.2-.7 2.6-.7 3.8 0s2.6.7 3.8 0"/></svg>
       <span>器皿</span>
     </button>
   </footer>
@@ -377,6 +384,6 @@
   </div>
 </div>
 
-<script type="module" src="assets/js/main.js?v=17"></script>
+<script type="module" src="assets/js/main.js?v=18"></script>
 </body>
 </html>
