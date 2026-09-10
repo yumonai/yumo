@@ -343,7 +343,7 @@ async function streamVia(ch, messages, { onDelta, signal, temperature } = {}) {
 }
 
 /** 非流式，用于内部提炼 */
-async function complete(messages, { temperature = 0.4, json = false } = {}) {
+async function complete(messages, { temperature = 0.4, json = false, maxTokens = 600 } = {}) {
   /* 提炼、写潮汐记这类内部调用不附图，所以逐条通道试过去就行 */
   const list = channels();
   if (!list.length) return null;
@@ -358,7 +358,7 @@ async function complete(messages, { temperature = 0.4, json = false } = {}) {
           model: ch.model,
           messages,
           temperature,
-          max_tokens: 600,
+          max_tokens: maxTokens,
           stream: false,
           ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
           ...(json ? { response_format: { type: 'json_object' } } : {}),
@@ -481,8 +481,7 @@ export function stripImages(messages) {
 
 /* ── 4. 组装上下文 ─────────────────────────────── */
 
-export function buildSystemPrompt({ deep = false, lastUser = '' } = {}) {
-  const p = store.get('profile');
+export function buildSystemPrompt({ deep = false, lastUser = '' } = {}) {  const p = store.get('profile');
   const memories = store.get('memories').slice(-24);
   const echoes = store.get('echoes').slice(-8);
   const parts = [PERSONA];
@@ -697,4 +696,78 @@ ${rules.join('\n')}
     { role: 'system', content: sys },
     { role: 'user', content: user },
   ], { onDelta, temperature: 0.9 });
+}
+
+/* ── 3.8 来自 Yumo 的信 ───────────────────────
+   每天一封。AI 只负责「用给定的一段文字去解读和提问」，
+   引文本身来自仓库里的内容池（assets/data/letters-pool.json），
+   提示词硬性禁止自创、另引或编造出处——真实性是这条产品的底线。 */
+
+const LETTER_RULES = `【今天这一封 · 特别的任务】
+你不是在回话，是在写一封短短的信。信里要围绕「给你的一段文字」来展开。
+
+规则（一条都不能破）：
+- 这段文字是唯一可用的引文。不许自创引文，不许另外引用任何其他书、论文、电影、
+  名人名言，不得编造或改动它的出处。哪怕你"记得"更好的句子，也不许用。
+- 如果这段是科学研究：用平实的话把它讲清楚，不许夸大效果，不许把它说成灵验的药方，
+  也可以坦白"研究还有它的边界"。
+- 解读要结合这段文字，而不是复述它。要有你自己看见的那一层。
+- 不许空安慰（我陪着你/我一直都在/等你），不许堆比喻（最多一处），
+  不许用编号或小标题，不许每句都押着同一个句式。
+- 全文**至少 240 字，写到 320–400 字**。这一条很重要：写短了这封信就没有重量，
+  他点开是要读一段的，不是扫一眼的。分成 2–3 小段，每段至少三句话，段间空一行。
+- 最后留一个问题给他——只有一个，具体、能回答、不玄。问题不要以"你是否愿意"开头。`;
+
+/**
+ * 写一封「来自 Yumo 的信」。
+ * @param {Object} p { text, author, source, type, theme, doi, profile }
+ * @returns {{greeting:string, body:string, question:string}} 拿不到就抛错，由调用方兜底
+ */
+export async function writeLetter(p) {
+  const prof = p.profile || {};
+  const bits = [];
+  if (prof.essence) bits.push(`你隐约感知到的这个人：${prof.essence}`);
+  if (prof.traits?.length) bits.push(`他的特质：${prof.traits.join('、')}`);
+  if (prof.themes?.length) bits.push(`他最近反复浮上来的事：${prof.themes.join('、')}`);
+  if (prof.seasons?.length) bits.push(`他正处在：${prof.seasons.join('、')}`);
+  if (prof.turns) bits.push(`你们已经聊过 ${prof.turns} 轮。`);
+  const profileText = bits.length
+    ? `【你对这个人的了解】\n${bits.join('\n')}\n\n解读时用得上这些——但只用于决定「怎么说」，不要直接复述给他听，也不要显得你在翻档案。`
+    : `【你对这个人的了解】还没有——你们几乎没聊过。那就用初见的语气写，不装熟，不编造任何关于他的细节。`;
+
+  const isScience = p.type === 'science';
+  const user = [
+    `【今天的引文】（这是唯一可用的引文，出自真实存在的出处）`,
+    p.text,
+    '',
+    `作者：${p.author}`,
+    `出处：${p.source}`,
+    isScience ? `（这是一项真实发表的研究，DOI 是 ${p.doi || '已核实'}。用平实的中文讲，不许夸大。）` : '',
+    '',
+    `【今天想借这段文字靠近的方向】${p.theme || ''}`,
+    '',
+    profileText,
+    '',
+    '请按 LETTER_RULES 写这封信，并以 JSON 返回：{"greeting":"开头的一句","body":"正文，段间用\\n\\n","question":"留给他的一句具体的问题"}。greeting 不要超过 40 字，不要用「亲爱的」开头，不要署名。',
+  ].filter(Boolean).join('\n');
+
+  const raw = await complete([
+    { role: 'system', content: PERSONA + '\n\n' + LETTER_RULES },
+    { role: 'user', content: user },
+  ], { temperature: 0.9, json: true, maxTokens: 1100 });
+
+  if (!raw) throw new AIError('今天的信没有写出来。', 'server', 0);
+  let obj;
+  try {
+    obj = JSON.parse(raw);
+  } catch {
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) throw new AIError('今天的信没有写出来。', 'server', 0);
+    obj = JSON.parse(m[0]);
+  }
+  const greeting = String(obj.greeting || '').trim();
+  const body = String(obj.body || '').trim();
+  const question = String(obj.question || '').trim();
+  if (!body || !question) throw new AIError('今天的信没有写出来。', 'server', 0);
+  return { greeting, body, question };
 }

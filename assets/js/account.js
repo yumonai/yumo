@@ -22,7 +22,7 @@ export const enabled = !!(CONF.url && CONF.publishableKey);
 const SESSION_KEY = 'yumo.v1.account';
 
 /** 哪些分区要跟着账号走 */
-export const SYNC_KINDS = ['settings', 'profile', 'messages', 'memories', 'echoes', 'journals', 'drifts', 'cards', 'flags'];
+export const SYNC_KINDS = ['settings', 'profile', 'messages', 'memories', 'echoes', 'journals', 'drifts', 'cards', 'letters', 'flags'];
 
 let session = loadSession();
 const listeners = new Set();

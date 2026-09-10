@@ -11,6 +11,7 @@ import { renderMirror } from './mirror.js';
 import { DEPLOY, hasDeployKey } from './config.js';
 import * as ai from './ai.js';
 import * as account from './account.js';
+import * as letters from './letters.js';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -30,6 +31,12 @@ const el = {
   mirrorBody: $('#mirror-body'),
   settingsBody: $('#settings-body'),
   driftList: $('#drift-list'),
+  letterBtn: $('#btn-letter'),
+  letterDot: $('#letter-dot'),
+  letterSheet: $('#letter-sheet'),
+  letterBody: $('#letter-body'),
+  letterQuote: $('#letter-quote'),
+  letterDate: $('#letter-date'),
   driftInput: $('#drift-input'),
   soundMix: $('#sound-mix'),
   soundRows: $('#sound-rows'),
@@ -999,6 +1006,75 @@ $('#btn-menu')?.addEventListener('click', () => { paintDrawer(); el.drawer.hidde
 $('#drawer-reset')?.addEventListener('click', () => {
   if (confirm('清空之后，Yumo 就再也不记得你了。真的要这么做吗？')) store.wipe();
 });
+
+/* ── 来自 Yumo 的信 ─────────────────────────── */
+
+function renderLetter(l) {
+  const d = new Date(l.date || Date.now());
+  el.letterDate.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+  const paras = String(l.body || '').split(/\n{2,}/).filter(Boolean);
+  el.letterBody.innerHTML =
+    (l.greeting ? `<p class="letter-greeting">${escapeHtml(l.greeting)}</p>` : '') +
+    paras.map((t) => `<p>${escapeHtml(t).replace(/\n/g, '<br>')}</p>`).join('');
+  el.letterQuote.hidden = !l.text;
+  if (l.text) {
+    $('#letter-quote-text').textContent = l.text;
+    $('#letter-quote-src').textContent = `${l.author} · ${l.source}`;
+  }
+  $('#letter-reply').hidden = false;
+}
+
+function openLetterSheet() {
+  el.letterSheet.hidden = false;
+  requestAnimationFrame(() => el.letterSheet.classList.add('is-in'));
+  const existing = letters.todayLetter();
+  if (existing) { renderLetter(existing); return; }
+  el.letterBody.innerHTML = '<p class="letter-loading">Yumo 正在写信…</p>';
+  el.letterQuote.hidden = true;
+  $('#letter-reply').hidden = true;
+  letters.ensureToday()
+    .then((l) => { if (l) renderLetter(l); refreshLetterDot(); })
+    .catch((e) => {
+      el.letterBody.innerHTML =
+        `<p class="letter-err">${escapeHtml(e.message || '今天的信没有写出来。')}</p>` +
+        '<p class="letter-err" style="margin-top:8px">过一会儿再点开试试。</p>';
+    });
+}
+
+function closeLetterSheet() {
+  el.letterSheet.classList.remove('is-in');
+  setTimeout(() => { el.letterSheet.hidden = true; }, 500);
+}
+
+function refreshLetterDot() {
+  const l = letters.todayLetter();
+  el.letterDot.hidden = !(l && !l.read);
+}
+
+$('#btn-letter')?.addEventListener('click', () => {
+  openLetterSheet();
+  const l = letters.todayLetter();
+  if (l && !l.read) {
+    store.put('letters', store.get('letters').map((x) => (x.date === l.date ? { ...x, read: true } : x)));
+  }
+  refreshLetterDot();
+});
+$('#letter-close')?.addEventListener('click', closeLetterSheet);
+el.letterSheet?.addEventListener('click', (e) => { if (e.target === el.letterSheet) closeLetterSheet(); });
+
+$('#letter-reply')?.addEventListener('click', () => {
+  const l = letters.todayLetter();
+  closeLetterSheet();
+  navigate('talk');
+  if (l?.question) {
+    el.input.value = `读了今天那封信，想跟你聊聊：${l.question}`;
+    el.input.dispatchEvent(new Event('input', { bubbles: true }));
+    setTimeout(() => el.input.focus(), 400);
+  }
+});
+letters.onLetter(refreshLetterDot);
+refreshLetterDot();
+
 /* 对话输入 */
 el.input?.addEventListener('input', autoGrow);
 el.input?.addEventListener('keydown', (e) => {
@@ -1109,4 +1185,4 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-window.__yumo = { store, ai, sound, sea, navigate, whisper, account };
+window.__yumo = { store, ai, sound, sea, navigate, whisper, account, letters };

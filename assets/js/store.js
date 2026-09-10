@@ -35,6 +35,7 @@ const DEFAULTS = {
   journals: [],              // 潮汐记 · 每段对话的总结 [{id,t,title,text,echoes:[]}]
   drifts: [],                // 浮念 [{id,t,text,shared}]
   cards: [],                 // 心象抽牌记录 [{id,t,spread,question,cards:[]}]
+  letters: [],               // 来自 Yumo 的信 [{date,itemId,title,greeting,body,question,t}]
   flags: { dived: false },
 };
 
