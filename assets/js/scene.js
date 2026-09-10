@@ -119,20 +119,47 @@ export class DeepSea {
     this.bubbles = [];
     const bc = Math.round(Math.min(34, Math.max(10, area / 62000)));
     for (let i = 0; i < bc; i++) this.bubbles.push(this.newBubble(true));
-    // 光柱：少而宽、慢而软——像很远的天光渗下来，而不是打下来
+    // 光束：柔光贴图方案——横纵两个方向的软衰减烘焙进一张 sprite，
+    // 每帧只做带旋转的贴图，边缘彻底没有直线切口
     this.shafts = [];
-    const sc = Math.max(2, Math.round(this.w / 420));
+    const sc = Math.max(2, Math.round(this.w / 460));
     for (let i = 0; i < sc; i++) {
       this.shafts.push({
-        x: rand(-0.15, 1.15) * this.w,
-        w: rand(0.10, 0.30) * this.w,
-        tilt: rand(-0.30, 0.30),
-        alpha: rand(0.014, 0.042),
+        x: rand(-0.10, 1.10) * this.w,
+        w: rand(0.18, 0.40) * this.w,
+        len: rand(0.9, 1.3),
+        tilt: rand(-0.26, 0.26),
+        alpha: rand(0.085, 0.17),
         phase: rand(0, TAU),
-        speed: rand(0.020, 0.055),
-        drift: rand(-2.2, 2.2),
+        speed: rand(0.016, 0.045),
+        drift: rand(-1.6, 1.6),
       });
     }
+    if (!this.beam) this.beam = this.makeBeam();
+  }
+
+  /** 一条光束的柔光贴图：横纵双向衰减一次烘焙成型 */
+  makeBeam() {
+    const w = 320, h = 1400;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const x = c.getContext('2d');
+    // 横向（横切光束）：中心最亮，两侧幂次化开
+    const gh = x.createLinearGradient(0, 0, w, 0);
+    for (const [o, a] of [[0, 0], [0.18, 0.42], [0.38, 0.78], [0.5, 1], [0.62, 0.78], [0.82, 0.42], [1, 0]]) {
+      gh.addColorStop(o, `rgba(255,255,255,${a})`);
+    }
+    x.fillStyle = gh;
+    x.fillRect(0, 0, w, h);
+    // 纵向（沿光束）：顶端渐显 → 中段饱满 → 尾端化开
+    const gv = x.createLinearGradient(0, 0, 0, h);
+    for (const [o, a] of [[0, 0], [0.08, 0.55], [0.2, 0.95], [0.55, 0.7], [0.85, 0.22], [1, 0]]) {
+      gv.addColorStop(o, `rgba(255,255,255,${a})`);
+    }
+    x.globalCompositeOperation = 'destination-in';
+    x.fillStyle = gv;
+    x.fillRect(0, 0, w, h);
+    return c;
   }
 
   newBubble(anywhere = false) {
@@ -167,38 +194,21 @@ export class DeepSea {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
-    // ② 光柱：柔和化——亮度峰值藏在屏内、双向渐隐、宽度随呼吸微胀、边缘用更多层羽化
+    // ② 光束：贴图 + 轻旋转 + 呼吸明暗——像月色透过水面漫下来
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    const LAYERS = 9;
     for (const s of this.shafts) {
-      const sway = Math.sin(this.t * s.speed * 0.6 + s.phase) * 34 + this.t * s.drift * 0.4;
-      const breathe = 0.92 + 0.08 * Math.sin(this.t * s.speed * 0.5 + s.phase * 1.7);
-      const a = s.alpha * (0.55 + 0.45 * Math.sin(this.t * s.speed * 1.1 + s.phase)) * (0.55 + this.energy * 0.7);
-      const x0 = s.x + sway;
-      const grad = ctx.createLinearGradient(x0, -140, x0 + s.tilt * h, h * 1.02);
-      /* 峰值沉到屏内 12% 处，向上向下都化开——不再有"从边上切进来"的生硬 */
-      grad.addColorStop(0, `rgba(${r | 0},${gg | 0},${b | 0},0)`);
-      grad.addColorStop(0.10, `rgba(${r | 0},${gg | 0},${b | 0},${(a * 0.55).toFixed(3)})`);
-      grad.addColorStop(0.24, `rgba(${r | 0},${gg | 0},${b | 0},${(a * 1.35).toFixed(3)})`);
-      grad.addColorStop(0.58, `rgba(${r | 0},${gg | 0},${b | 0},${(a * 0.5).toFixed(3)})`);
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = grad;
-      ctx.globalAlpha = 0.34;
-      for (let j = 0; j < LAYERS; j++) {
-        /* 中心层叠加渐进（幂次缓出），越往中心亮度增长越缓 → 柔软的带状辉光 */
-        const k = 1 - Math.pow(j / LAYERS, 1.6) * 0.86;
-        const tw = s.w * k * breathe;
-        ctx.beginPath();
-        ctx.moveTo(x0 - tw / 2, -140);
-        ctx.lineTo(x0 + tw / 2, -140);
-        ctx.lineTo(x0 + tw / 2 + s.tilt * h + tw * 1.1, h * 1.02);
-        ctx.lineTo(x0 - tw / 2 + s.tilt * h - tw * 1.1, h * 1.02);
-        ctx.closePath();
-        ctx.fill();
-      }
+      const rot = s.tilt + Math.sin(this.t * s.speed * 0.5 + s.phase) * 0.018;
+      const a = s.alpha * (0.6 + 0.4 * Math.sin(this.t * s.speed * 1.3 + s.phase)) * (0.5 + this.energy * 0.8);
+      const x0 = s.x + Math.sin(this.t * s.speed * 0.4 + s.phase * 2) * 22 + this.t * s.drift * 0.5;
+      const bh = this.h * s.len;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, a);
+      ctx.translate(x0, -this.h * 0.06);
+      ctx.rotate(rot);
+      ctx.drawImage(this.beam, -s.w / 2, 0, s.w, bh);
+      ctx.restore();
     }
-    ctx.globalAlpha = 1;
     ctx.restore();
 
     // ③ 浮游微光（移动）

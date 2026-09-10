@@ -6,7 +6,11 @@
 
 /* ── 1. 设计令牌 ───────────────────────────────────────────── */
 :root{
-  /* 水的深度：由表层到无光层 */
+  /* 全站不出现滚动条：滚动能力保留，视觉彻底隐去 */
+*,*::before,*::after{scrollbar-width:none;-ms-overflow-style:none}
+*::-webkit-scrollbar{display:none;width:0;height:0}
+
+/* 水的深度：由表层到无光层 */
   --abyss-000:#010306;
   --abyss-050:#03060B;
   --abyss-100:#060B14;
@@ -1450,3 +1454,13 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   transition:color var(--dur-fast) var(--ease-soft);
 }
 .gate__swap:hover{color:var(--tide-200)}
+
+/* ── 信件展开：信纸落定后逐行浮起 ───────────── */
+.letter-paper.reveal .reveal-item{
+  animation:letter-line 1.15s var(--ease-soft) both;
+  animation-delay:calc(.5s + var(--i, 0) * .22s);
+}
+@keyframes letter-line{
+  from{opacity:0;transform:translateY(12px);filter:blur(5px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}

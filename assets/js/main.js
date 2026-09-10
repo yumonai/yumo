@@ -1080,8 +1080,7 @@ let letterClock = null;
 /* 信头日期永远显示「此刻」的日期；页面开着跨过午夜，日期与新信一起换 */
 function paintLetterDate() {
   const d = new Date();
-  el.letterDate.textContent =
-    `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日${letterNow?.theme ? ' · ' + letterNow.theme : ''}`;
+  el.letterDate.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
 }
 
 function renderLetter(l) {
@@ -1091,16 +1090,36 @@ function renderLetter(l) {
   if (l.img) { $('#letter-img').src = l.img; $('#letter-img').alt = l.theme || ''; fig.hidden = false; }
   else fig.hidden = true;
 
-  const paras = String(l.body || '').split(/\n{2,}/).filter(Boolean);
-  el.letterBody.innerHTML =
-    (l.greeting ? `<p class="letter-greeting">${escapeHtml(l.greeting)}</p>` : '') +
-    paras.map((t) => `<p>${escapeHtml(t).replace(/\n/g, '<br>')}</p>`).join('');
+  /* 信纸落定后，内容按次序逐行浮起：称呼 → 各段 → 配图/引文 → 回信按钮 */
+  let i = 0;
+  const items = [];
+  if (l.greeting) items.push(`<p class="letter-greeting reveal-item" style="--i:${i++}">${escapeHtml(l.greeting)}</p>`);
+  for (const t of String(l.body || '').split(/\n{2,}/).filter(Boolean)) {
+    items.push(`<p class="reveal-item" style="--i:${i++}">${escapeHtml(t).replace(/\n/g, '<br>')}</p>`);
+  }
+  el.letterBody.innerHTML = items.join('');
+
+  fig.classList.toggle('reveal-item', !!l.img);
+  if (l.img) fig.style.setProperty('--i', i++);
   el.letterQuote.hidden = !l.text;
   if (l.text) {
     $('#letter-quote-text').textContent = l.text;
     $('#letter-quote-src').textContent = `${l.author} · ${l.source}`;
+    el.letterQuote.classList.add('reveal-item');
+    el.letterQuote.style.setProperty('--i', i++);
+  } else {
+    el.letterQuote.classList.remove('reveal-item');
   }
-  $('#letter-reply').hidden = false;
+  const reply = $('#letter-reply');
+  reply.hidden = false;
+  reply.classList.add('reveal-item');
+  reply.style.setProperty('--i', i++);
+
+  /* 重触发入场（同一封信被重新渲染时也要重新浮起） */
+  const paper = document.querySelector('.letter-paper');
+  paper.classList.remove('reveal');
+  void paper.offsetWidth;
+  paper.classList.add('reveal');
 }
 
 let letterTimer = null;
