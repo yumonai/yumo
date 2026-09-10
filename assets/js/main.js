@@ -12,6 +12,7 @@ import { DEPLOY, hasDeployKey } from './config.js';
 import * as ai from './ai.js';
 import * as account from './account.js';
 import * as letters from './letters.js';
+import * as player from './player.js';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -534,6 +535,7 @@ function applySoundVolume() {
 }
 
 function paintSound() {
+  player.mountPlayer($('#music-box'));
   const levels = sound.levels;
   const st = store.get('settings');
   const volv = Math.round((typeof st.soundVolume === 'number' ? st.soundVolume : 0.85) * 100);
@@ -1049,6 +1051,9 @@ $('#drawer-reset')?.addEventListener('click', () => {
 function renderLetter(l) {
   const d = new Date(l.date || Date.now());
   el.letterDate.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 · ${l.theme || ''}`;
+  const fig = $('#letter-fig');
+  if (l.img) { $('#letter-img').src = l.img; $('#letter-img').alt = l.theme || ''; fig.hidden = false; }
+  else fig.hidden = true;
 
   const paras = String(l.body || '').split(/\n{2,}/).filter(Boolean);
   el.letterBody.innerHTML =

@@ -106,6 +106,7 @@ export async function ensureToday({ force = false } = {}) {
       date: today(),
       itemId: item.id,
       theme: item.theme,
+      img: item.img || '',
       author: item.author,
       source: item.source,
       text: item.text,

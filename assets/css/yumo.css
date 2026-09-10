@@ -1144,10 +1144,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 .pay-intro{
   margin:0 0 16px;font-size:12.5px;line-height:2;letter-spacing:.05em;color:var(--mist-200);
 }
-.pay-btn{
-  width:100%;justify-content:center;padding:12px 16px;
-  font-size:13px;letter-spacing:.2em;text-indent:.2em;
-}
+.pay-btn{justify-content:center}
 .pay-tip{margin:13px 0 0;font-size:11px;letter-spacing:.06em;color:var(--mist-400);line-height:1.9}
 
 .pay-chooser{
@@ -1286,8 +1283,9 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 
 /* ── 赞助双按钮 / 联系 YUMO ─────────────────── */
 .pay-actions{margin-top:4px}
-.pay-actions .pay-btn{flex:1}
-.pay-actions .btn-ghost{flex:1}
+.pay-actions .btn-ghost{
+  flex:1;padding:12px 10px;font-size:12.5px;letter-spacing:.14em;text-indent:.14em;
+}
 .contact-mail{
   display:block;width:100%;margin:4px 0 0;padding:13px 12px;
   border-radius:var(--r-sm);border:1px solid var(--line-strong);
@@ -1304,4 +1302,52 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 .threshold__copy{
   margin:26px 0 0;font-size:10.5px;letter-spacing:.14em;
   color:var(--mist-400);opacity:.72;text-align:center;
+}
+
+
+/* ── 月下音乐会 ─────────────────────────────── */
+.music-intro{margin:0 0 14px;font-size:12px;line-height:1.95;letter-spacing:.05em;color:var(--mist-300)}
+.music-list{display:flex;flex-direction:column;gap:9px}
+.music-row{
+  position:relative;display:flex;align-items:center;gap:12px;width:100%;
+  padding:10px 12px 12px;border-radius:var(--r-sm);
+  border:1px solid var(--line-soft);background:rgba(210,236,250,.025);
+  color:var(--mist-100);text-align:left;cursor:pointer;overflow:hidden;
+  transition:border-color var(--dur-med) var(--ease-soft),background var(--dur-med) var(--ease-soft);
+}
+.music-row:hover{border-color:var(--line-strong);background:rgba(210,236,250,.05)}
+.music-row.is-on{border-color:var(--line-strong);background:rgba(210,236,250,.06)}
+.music-row__cover{
+  position:relative;flex:none;width:52px;height:52px;border-radius:var(--r-xs);
+  overflow:hidden;background:var(--abyss-200);
+}
+.music-row__cover img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:saturate(.85) brightness(.92);transition:filter var(--dur-med) var(--ease-soft)}
+.music-row.is-on .music-row__cover img{filter:none}
+.music-row__eq{
+  position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;
+  gap:3px;padding:8px;background:rgba(2,5,9,.55);
+}
+.music-row.is-on:not(.is-paused) .music-row__eq{display:flex}
+.music-row__eq u{
+  width:3px;border-radius:2px 2px 0 0;background:var(--tide-100);
+  animation:eq .9s var(--ease-soft) infinite;
+}
+.music-row__eq u:nth-child(2){animation-delay:.22s}
+.music-row__eq u:nth-child(3){animation-delay:.44s}
+@keyframes eq{0%,100%{height:30%}50%{height:86%}}
+.music-row__txt{flex:1;min-width:0}
+.music-row__txt b{display:block;text-decoration:none;font-weight:400;font-size:13px;letter-spacing:.05em;color:var(--mist-050);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-row__txt span{display:block;text-decoration:none;font-size:10.5px;letter-spacing:.04em;color:var(--mist-400);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-row__time{flex:none;font-family:var(--font-mono);font-size:10px;color:var(--mist-400)}
+.music-row__bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:transparent}
+.music-row__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--tide-400),var(--tide-200));transition:width .3s linear}
+.music-credit{margin:14px 0 0;font-size:10px;letter-spacing:.05em;line-height:1.8;color:var(--mist-400);opacity:.8}
+
+/* ── 信件配图 ── */
+.letter-fig{margin:0 0 16px}
+.letter-fig img{
+  width:100%;max-height:240px;object-fit:contain;display:block;
+  border-radius:var(--r-xs);background:rgba(3,6,11,.55);
+  border:1px solid var(--line-soft);
 }
