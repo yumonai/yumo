@@ -220,7 +220,13 @@
     </div>
     <div class="composer-foot">
       <span id="talk-hint">Enter 送出 · Shift+Enter 换行</span>
-      <span id="talk-model" class="mono-chip">未连接</span>
+      <span class="foot-right">
+        <!-- 常态化的 AI 标识：法规要求对话页稳定可见 -->
+        <span class="ai-mark" id="ai-mark" title="Yumo 是人工智能，不是人类，也不能替代医生或心理咨询师">
+          <i aria-hidden="true"></i>AI 生成
+        </span>
+        <span id="talk-model" class="mono-chip">未连接</span>
+      </span>
     </div>
   </div>
   <input type="file" id="file-image" accept="image/*" hidden />
