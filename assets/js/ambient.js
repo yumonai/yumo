@@ -12,6 +12,9 @@
    涌动的基准值一并覆盖掉，声音就会忽大忽小甚至消失。
    ══════════════════════════════════════════════ */
 
+/* 瞬态细节的节拍（毫秒）——雨滴在一拍内被打散到这个跨度里 */
+const SPARK_TICK = 0.52;
+
 const SOUNDS = [
   { id: 'tide',  name: '潮 汐',  desc: '一波，又一波',      icon: 'waves' },
   { id: 'rain',  name: '雨 落',  desc: '隔着水听雨',        icon: 'rain'  },
@@ -200,24 +203,48 @@ export class Soundscape {
     return body;
   }
 
-  /** 雨落：连绵的沙沙，加上一颗一颗的雨滴 */
+  /**
+   * 雨落：隔着水听雨。
+   * 关键在「厚」——只有中高频的噪声会变成干涩的嘶嘶声，
+   * 所以下面垫一层低通噪声当身体，上面再铺一层带峰的中高频雨幕。
+   */
   _buildRain() {
-    const src = this._noiseSource();
-    src.playbackRate.value = 1.32;
-    const hp = this._filter('highpass', 1500, 0.5);
-    const peak = this._filter('peaking', 5400, 0.7);
-    peak.gain.value = 4.5;
-    const mod = this.ctx.createGain();
-    mod.gain.value = 0.42;
-    const out = this.ctx.createGain();
+    const ctx = this.ctx;
+    const out = ctx.createGain();
     out.gain.value = FLOOR;
-    src.connect(hp); hp.connect(peak); peak.connect(mod); mod.connect(out); out.connect(this.bus);
-    src.start();
+    out.connect(this.bus);
+
+    // ① 身体层：低通噪声，给雨一把厚度
+    const bodySrc = this._noiseSource();
+    bodySrc.playbackRate.value = 0.46;
+    const bodyHp = this._filter('highpass', 80, 0.7);
+    const bodyLp = this._filter('lowpass', 640, 0.9);
+    const bodyG = ctx.createGain(); bodyG.gain.value = 0.36;
+    bodySrc.connect(bodyHp); bodyHp.connect(bodyLp); bodyLp.connect(bodyG);
+
+    // ② 雨幕层：连绵的沙沙，峰值随缓慢移动的共振点走
+    const veilSrc = this._noiseSource();
+    veilSrc.playbackRate.value = 1.16;
+    const veilHp = this._filter('highpass', 820, 0.6);
+    const veilPeak = this._filter('peaking', 2500, 0.8);
+    veilPeak.gain.value = 3.4;
+    const veilLp = this._filter('lowpass', 7200, 0.5);
+    const veilG = ctx.createGain(); veilG.gain.value = 0.19;
+    veilSrc.connect(veilHp); veilHp.connect(veilPeak); veilPeak.connect(veilLp); veilLp.connect(veilG);
+
+    const mod = ctx.createGain(); mod.gain.value = 0.74;
+    bodyG.connect(mod); veilG.connect(mod);
+    mod.connect(out);
+
+    bodySrc.start(); veilSrc.start();
+
     const extra = [
-      this._lfo(0.085, 0.12, mod.gain, 0.42),
-      this._lfo(0.019, 260, hp.frequency, 1900),
+      this._lfo(0.071, 0.09, mod.gain, 0.74),          // 雨势的涨落
+      this._lfo(0.021, 340, veilHp.frequency, 820),    // 雨幕缓慢变薄变厚
+      this._lfo(0.013, 900, veilPeak.frequency, 2500),
+      bodySrc, veilSrc,
     ];
-    return { src, out, extra, base: 0.58, spark: 'drop' };
+    return { src: veilSrc, out, extra, base: 0.6, spark: 'drop' };
   }
 
   /** 风过：带通噪声 + 两重阵风 + 一丝尾音 */
@@ -245,62 +272,97 @@ export class Soundscape {
     return { src, out, extra, base: 0.62 };
   }
 
-  /** 深压：极低频持续音 + 缓慢拍频 + 偶尔上浮的气泡 */
+  /**
+   * 深压：水底的低鸣。
+   * 原来的基频 44Hz 在手机和笔记本喇叭上根本发不出来，所以只能听见一点点噪声。
+   * 现在把基频提到 58Hz，并补上 116/174Hz 的谐波 ——
+   * 小喇叭放不出 58Hz，但能放出它的谐波，耳朵就会「补」出那个低沉感。
+   */
   _buildDeep() {
     const ctx = this.ctx;
     const out = ctx.createGain();
     out.gain.value = FLOOR;
     out.connect(this.bus);
 
-    // 两个相差 0.6Hz 的正弦，产生很慢的拍频，像水压本身在呼吸
-    const o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = 44;
-    const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = 44.7;
-    const o3 = ctx.createOscillator(); o3.type = 'sine'; o3.frequency.value = 66;
-    const g3 = ctx.createGain(); g3.gain.value = 0.2;
-    const src = this._noiseSource(); src.playbackRate.value = 0.22;
-    const lp = this._filter('lowpass', 150, 0.9);
-    const nGain = ctx.createGain(); nGain.gain.value = 0.45;
-    const lfo = ctx.createGain(); lfo.gain.value = 0.34;
+    // ① 低音组：两个极近的频率产生很慢的拍频，像水压自己在呼吸
+    const tones = ctx.createGain(); tones.gain.value = 0.5;
+    [[58, 0.5], [58.4, 0.42], [116, 0.2], [174, 0.1]].forEach(([f, a]) => {
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const g = ctx.createGain(); g.gain.value = a;
+      o.connect(g); g.connect(tones);
+      o.start();
+    });
 
-    o1.connect(lfo); o2.connect(lfo); o3.connect(g3); g3.connect(lfo);
-    src.connect(lp); lp.connect(nGain); nGain.connect(lfo);
-    lfo.connect(out);
-
-    o1.start(); o2.start(); o3.start(); src.start();
-    const extra = [
-      this._lfo(0.026, 0.22, lfo.gain, 0.34),
-      this._lfo(0.009, 8, o2.frequency, 44.7),
-    ];
-    return { src, out, extra, base: 0.5, spark: 'bubble' };
-  }
-
-  /** 空腔：一口井的窄带共鸣 + 很长的拖尾 + 偶尔一滴水 */
-  _buildCave() {
-    const ctx = this.ctx;
+    // ② 被低频包住的噪声，给「压」的质感
     const src = this._noiseSource();
-    src.playbackRate.value = 0.52;
-    const bp = this._filter('bandpass', 2400, 5.5);
-    const mod = ctx.createGain();
-    mod.gain.value = 0.26;
-    const out = ctx.createGain();
-    out.gain.value = FLOOR;
+    src.playbackRate.value = 0.3;
+    const lp = this._filter('lowpass', 220, 3.4);
+    const nGain = ctx.createGain(); nGain.gain.value = 0.5;
+    src.connect(lp); lp.connect(nGain);
 
-    const dly = ctx.createDelay(1.5);
-    dly.delayTime.value = 0.42;
-    const fb = ctx.createGain(); fb.gain.value = 0.36;
-    const wet = ctx.createGain(); wet.gain.value = 0.42;
-
-    src.connect(bp); bp.connect(mod); mod.connect(out);
-    out.connect(this.bus);
-    out.connect(dly); dly.connect(fb); fb.connect(dly);
-    dly.connect(wet); wet.connect(this.bus);
+    const mod = ctx.createGain(); mod.gain.value = 0.42;
+    tones.connect(mod); nGain.connect(mod);
+    mod.connect(out);
     src.start();
 
     const extra = [
-      this._lfo(0.033, 0.14, mod.gain, 0.26),
-      this._lfo(0.017, 820, bp.frequency, 2400),
+      this._lfo(0.019, 0.15, mod.gain, 0.42),        // 很慢的涨落
+      this._lfo(0.0093, 0.14, tones.gain, 0.5),      // 呼吸感
+      this._lfo(0.0071, 62, lp.frequency, 220),      // 共振点缓缓移动
     ];
-    return { src, out, extra, base: 0.42, spark: 'drip' };
+    return { src, out, extra, base: 0.52, spark: 'bubble' };
+  }
+
+  /**
+   * 空腔：像在一口井里。
+   * 「空洞」不是一个高频窄带能给出的 —— 那是哨音。
+   * 空腔感来自几个低中频的共振峰（像对着瓶口吹气），
+   * 再加上四个不同距离的早期反射，才有空间的体积。
+   */
+  _buildCave() {
+    const ctx = this.ctx;
+    const out = ctx.createGain();
+    out.gain.value = FLOOR;
+    out.connect(this.bus);
+
+    // ① 腔体的三个共振峰
+    const src = this._noiseSource();
+    src.playbackRate.value = 0.44;
+    const bed = this._filter('lowpass', 1900, 0.7);
+    src.connect(bed);
+
+    const resos = [[186, 4.6, 0.5], [468, 5.6, 0.34], [1140, 6.4, 0.2]].map(([f, q, a]) => {
+      const bp = this._filter('bandpass', f, q);
+      const g = ctx.createGain(); g.gain.value = a;
+      bed.connect(bp); bp.connect(g);
+      return { bp, g };
+    });
+
+    const mod = ctx.createGain(); mod.gain.value = 0.3;
+    resos.forEach((r) => r.g.connect(mod));
+    mod.connect(out);
+    src.start();
+
+    // ② 四个不同距离、不同方位的早期反射 —— 让空间有体积，而不是金属弹簧
+    const taps = [[0.083, 0.3, -0.8], [0.147, 0.24, 0.7], [0.241, 0.18, -0.4], [0.377, 0.12, 0.9]];
+    taps.forEach(([t, a, pan]) => {
+      const d = ctx.createDelay(1.2);
+      d.delayTime.value = t;
+      const g = ctx.createGain(); g.gain.value = a;
+      mod.connect(d); d.connect(g);
+      this._connectTo(g, pan, out);   // 反射同样受这一路的音量控制
+    });
+
+    const extra = [
+      this._lfo(0.031, 0.1, mod.gain, 0.3),
+      this._lfo(0.017, 52, resos[0].bp.frequency, 186),
+      this._lfo(0.023, 96, resos[1].bp.frequency, 468),
+      this._lfo(0.013, 190, resos[2].bp.frequency, 1140),
+      src,
+    ];
+    return { src, out, extra, base: 0.46, spark: 'drip' };
   }
 
   /** 钵音：不常出现，出现就很久才散 */
@@ -359,7 +421,7 @@ export class Soundscape {
 
   _startSparks() {
     clearInterval(this._sparkTimer);
-    this._sparkTimer = setInterval(() => this._tickSparks(), 520);
+    this._sparkTimer = setInterval(() => this._tickSparks(), SPARK_TICK * 1000);
   }
 
   _tickSparks() {
@@ -368,47 +430,54 @@ export class Soundscape {
       const node = this.nodes[s.id];
       const lv = this.levels[s.id] || 0;
       if (!node || lv <= 0.01 || !node.spark) continue;
-      // 出现频率跟着音量走：声音越大，细节越密
-      if (Math.random() > lv * 0.85) continue;
-      if (node.spark === 'drop') this._drop(lv);
-      else if (node.spark === 'bubble') this._bubble(lv);
-      else if (node.spark === 'drip') this._drip(lv);
+      if (node.spark === 'drop') {
+        // 雨是一片，不是一颗：每次 tick 撒下一小把，时间上打散
+        const n = 3 + Math.round(lv * 9);
+        for (let i = 0; i < n; i++) this._drop(lv, Math.random() * SPARK_TICK, node.out);
+      } else {
+        // 气泡与滴水是零星的：出现频率跟着音量走
+        if (Math.random() > lv * 0.85) continue;
+        if (node.spark === 'bubble') this._bubble(lv, node.out);
+        else if (node.spark === 'drip') this._drip(lv, node.out);
+      }
     }
   }
 
-  _connectToBus(node, pan) {
+  /** 把一个节点按 pan 摆位后接到 dest（默认总线） */
+  _connectTo(node, pan, dest) {
+    const target = dest || this.bus;
     if (this.ctx.createStereoPanner) {
       const p = this.ctx.createStereoPanner();
       p.pan.value = pan;
       node.connect(p);
-      p.connect(this.bus);
+      p.connect(target);
     } else {
-      node.connect(this.bus);
+      node.connect(target);
     }
   }
 
-  /** 一颗雨滴：极短的高 Q 带通噪声爆点 */
-  _drop(intensity = 1) {
+  /** 一颗雨滴：极短的带通噪声爆点。offset 用来在一拍里把它打散 */
+  _drop(intensity = 1, offset = 0, dest) {
     const ctx = this.ctx;
-    const now = ctx.currentTime;
+    const t0 = ctx.currentTime + offset;
     const src = ctx.createBufferSource();
     src.buffer = this.noiseBuf;
     src.loop = true;
-    src.playbackRate.value = 1.5 + Math.random() * 1.8;
-    const bp = this._filter('bandpass', 1600 + Math.random() * 4600, 7 + Math.random() * 11);
+    src.playbackRate.value = 1.2 + Math.random() * 1.5;
+    const bp = this._filter('bandpass', 900 + Math.random() * 3900, 4 + Math.random() * 7);
     const g = ctx.createGain();
-    const dur = 0.028 + Math.random() * 0.075;
-    g.gain.setValueAtTime(FLOOR, now);
-    g.gain.exponentialRampToValueAtTime(0.34 * intensity, now + 0.004);
-    g.gain.exponentialRampToValueAtTime(FLOOR, now + dur);
+    const dur = 0.018 + Math.random() * 0.046;
+    g.gain.setValueAtTime(FLOOR, t0);
+    g.gain.exponentialRampToValueAtTime(0.13 * intensity, t0 + 0.004);
+    g.gain.exponentialRampToValueAtTime(FLOOR, t0 + dur);
     src.connect(bp); bp.connect(g);
-    this._connectToBus(g, Math.random() * 2 - 1);
-    src.start(now);
-    src.stop(now + dur + 0.06);
+    this._connectTo(g, Math.random() * 2 - 1, dest);
+    src.start(t0);
+    src.stop(t0 + dur + 0.06);
   }
 
   /** 一颗气泡：向上滑的短正弦 */
-  _bubble(intensity = 1) {
+  _bubble(intensity = 1, dest) {
     const ctx = this.ctx;
     const now = ctx.currentTime;
     const f0 = 110 + Math.random() * 170;
@@ -422,33 +491,37 @@ export class Soundscape {
     g.gain.exponentialRampToValueAtTime(0.15 * intensity, now + 0.018);
     g.gain.exponentialRampToValueAtTime(FLOOR, now + dur);
     o.connect(g);
-    this._connectToBus(g, Math.random() * 1.6 - 0.8);
+    this._connectTo(g, Math.random() * 1.6 - 0.8, dest);
     o.start(now);
     o.stop(now + dur + 0.06);
   }
 
-  /** 洞里的滴水：高音点 + 一点延迟回响的味道 */
-  _drip(intensity = 1) {
+  /** 洞里的一滴水：一点高音，尾巴交给带阻尼的短回响 */
+  _drip(intensity = 1, dest) {
     const ctx = this.ctx;
     const now = ctx.currentTime;
     const o = ctx.createOscillator();
     o.type = 'sine';
-    const f = 900 + Math.random() * 1500;
+    const f = 780 + Math.random() * 1400;
     o.frequency.setValueAtTime(f, now);
-    o.frequency.exponentialRampToValueAtTime(f * 0.55, now + 0.09);
+    o.frequency.exponentialRampToValueAtTime(f * 0.5, now + 0.1);
     const g = ctx.createGain();
-    const dur = 0.13 + Math.random() * 0.1;
+    const dur = 0.14 + Math.random() * 0.12;
     g.gain.setValueAtTime(FLOOR, now);
-    g.gain.exponentialRampToValueAtTime(0.14 * intensity, now + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.17 * intensity, now + 0.005);
     g.gain.exponentialRampToValueAtTime(FLOOR, now + dur);
+    o.connect(g);
+    this._connectTo(g, Math.random() * 1.4 - 0.7, dest);
+    // 一小段带阻尼的反馈：越回越暗，像井壁吸掉高频
     const dly = ctx.createDelay(1.5);
-    dly.delayTime.value = 0.31;
+    dly.delayTime.value = 0.19;
+    const dlp = this._filter('lowpass', 2400, 0.7);
     const fb = ctx.createGain(); fb.gain.value = 0.34;
     const wet = ctx.createGain(); wet.gain.value = 0.3;
-    o.connect(g);
-    this._connectToBus(g, Math.random() * 1.4 - 0.7);
-    g.connect(dly); dly.connect(fb); fb.connect(dly);
-    dly.connect(wet); wet.connect(this.bus);
+    g.connect(dly); dly.connect(dlp);
+    dlp.connect(fb); fb.connect(dly);
+    dlp.connect(wet);
+    this._connectTo(wet, -0.3, dest);
     o.start(now);
     o.stop(now + dur + 0.06);
   }

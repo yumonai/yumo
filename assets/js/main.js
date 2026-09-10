@@ -5,7 +5,7 @@
 import { store, uid, clamp } from './store.js';
 import { DeepSea } from './scene.js';
 import { Soundscape, ICONS } from './ambient.js';
-import { Listener, Speaker } from './voice.js';
+import { Listener } from './voice.js';
 import { renderGarden } from './garden.js';
 import { renderMirror } from './mirror.js';
 import { DEPLOY, hasDeployKey } from './config.js';
@@ -59,7 +59,6 @@ function applyDeployDefaults() {
 const sea = new DeepSea(el.scene);
 const sound = new Soundscape();
 const listener = new Listener();
-const speaker = new Speaker();
 
 let view = 'threshold';
 let garden = null;
@@ -77,14 +76,6 @@ function whisper(text, ms = 3400) {
   el.whisper.classList.add('is-on');
   clearTimeout(whisperTimer);
   whisperTimer = setTimeout(() => el.whisper.classList.remove('is-on'), ms);
-}
-
-/* 安全提示：只在进入水面之后说一次，不挡首屏的月印 */
-let safetyShown = false;
-function maybeShowSafety(delay = 2600) {
-  if (safetyShown) return;
-  safetyShown = true;
-  setTimeout(() => whisper('这只是一种陪伴，不是治疗。如果你正处在很黑的时刻，请一定找一个真人。', 7000), delay);
 }
 
 /* ══════════════════════════════════════════════
@@ -192,10 +183,7 @@ function messageHTML(m) {
       <div class="msg__bubble">${escapeHtml(m.text)}${imgs}</div>
       <div class="msg__meta">
         <span>${time}</span>
-        ${isMe
-          ? `<button class="msg__act" data-echo="${m.id}" type="button">收藏这句</button>`
-          : `<button class="msg__act" data-say="${m.id}" type="button">读给我听</button>
-             <button class="msg__act" data-echo="${m.id}" type="button">收藏</button>`}
+        <button class="msg__act" data-echo="${m.id}" type="button">${isMe ? '收藏这句' : '收藏'}</button>
       </div>
     </div>`;
 }
@@ -214,17 +202,6 @@ function bindThread() {
       whisper('捞起来了。在「回响」里能找到。');
     });
   });
-  $$('[data-say]', el.thread).forEach((b) => {
-    b.addEventListener('click', () => {
-      const m = store.get('messages').find((x) => x.id === b.dataset.say);
-      if (!m) return;
-      if (!speaker.supported) return whisper('这台设备不支持朗读。');
-      speaker.rate = store.get('settings').speakRate || 1;
-      speaker.setVoice(store.get('settings').voiceName);
-      speaker.speak(m.text);
-    });
-  });
-
   // 长按也收藏
   $$('.msg', el.thread).forEach((node) => {
     let timer = null;
@@ -336,13 +313,6 @@ async function send() {
 
     store.bumpTurns();
 
-    // 自动朗读
-    if (settings.speakReplies && speaker.supported && acc) {
-      speaker.rate = settings.speakRate || 1;
-      speaker.setVoice(settings.voiceName);
-      speaker.speak(acc);
-    }
-
     // 后台提炼（不阻塞）
     ai.distill().then((d) => {
       if (d) {
@@ -451,7 +421,6 @@ function toggleListen() {
   if (ok) {
     el.recBar.hidden = false;
     $('#btn-mic').classList.add('is-on');
-    speaker.cancel();
   } else {
     whisper('没能打开麦克风。');
   }
@@ -683,51 +652,25 @@ function paintSettings() {
   const s = store.get('settings');
   /* 访客自己填过的钥匙。站点自带的公用钥匙不算「他自己的」，不回填到输入框 */
   const ownKey = s.apiKey && s.apiKey !== (DEPLOY.apiKey || '').trim() ? s.apiKey : '';
-  const voiceOpts = speaker.voices.map((v) =>
-    `<option value="${escapeHtml(v.name)}" ${v.name === s.voiceName ? 'selected' : ''}>${escapeHtml(v.name)} · ${v.lang}</option>`).join('');
 
   el.settingsBody.innerHTML = `
     <div class="card">
       <div class="card__label">与 Yumo 相连</div>
       <p class="empty-line" style="margin-bottom:14px">
         ${hasDeployKey()
-          ? '这片水是通的，你不需要做任何事，直接说话就好。<br />想换上自己的钥匙，或者哪天它忽然沉默了，再展开下面。'
-          : '填入一把钥匙，Yumo 才能真正回你。<br />钥匙只留在这台设备上，不经过任何第三方。'}
+          ? '这片水是通的，你不需要做任何事，直接说话就好。'
+          : '填入一把钥匙，Yumo 才能真正回你。'}
       </p>
-      <div class="field-row">
-        <button class="btn-ghost" id="btn-test" type="button">试一试</button>
-        <button class="btn-ghost" id="btn-adv" type="button" aria-expanded="false">进阶</button>
-      </div>
-      <p class="empty-line" style="margin-top:12px" id="test-result"></p>
-      <div id="adv-box" hidden style="margin-top:18px">
-        <input class="field" id="set-key" type="password" placeholder="你自己的钥匙（可留空）" value="${escapeHtml(ownKey)}" autocomplete="off" spellcheck="false" />
-        <p class="empty-line" style="margin-top:10px">
-          这里只放钥匙。其余的部分由 Yumo 自己照看，不用管。
-        </p>
-      </div>
+      <input class="field" id="set-key" type="password" placeholder="你自己的钥匙（可留空）" value="${escapeHtml(ownKey)}" autocomplete="off" spellcheck="false" />
+      <p class="empty-line" style="margin-top:10px">
+        留空就用这里自带的那把。钥匙只存在你这台设备上。
+      </p>
     </div>
 
     <div class="card card--plain">
       <div class="card__label">Yumo 的存在方式</div>
       ${rowToggle('深潜模式', '由 Yumo 带着你往下走，它会不断提问', 'deepMode')}
       ${rowToggle('自动提炼记忆与画像', '每次对话后，静默整理它对你的理解', 'autoDigest')}
-    </div>
-
-    <div class="card card--plain">
-      <div class="card__label">声音</div>
-      ${speaker.supported ? `
-        ${rowToggle('自动朗读回复', 'Yumo 说完话后读给你听', 'speakReplies')}
-        <div class="set-row">
-          <div class="set-row__txt"><b>语速</b><span>${(s.speakRate || 1).toFixed(2)} 倍</span></div>
-        </div>
-        <input type="range" min="60" max="150" value="${Math.round((s.speakRate || 1) * 100)}" id="set-rate" style="width:100%;-webkit-appearance:none;height:2px;background:rgba(168,216,232,.14);border-radius:99px;outline:none" />
-        ${voiceOpts ? `<div class="field-row" style="margin-top:14px">
-          <select class="field" id="set-voice" style="font-family:var(--font-sans)">
-            <option value="">跟随系统默认</option>${voiceOpts}
-          </select>
-        </div>` : ''}
-        ${speaker.voices.length ? '' : '<p class="empty-line" style="margin-top:10px">系统还没报出可用的音色，点一下页面任意处再回来看看。</p>'}
-      ` : '<p class="empty-line">这台设备不支持朗读。</p>'}
     </div>
 
     <div class="card card--plain">
@@ -764,34 +707,12 @@ function paintSettings() {
     }
     updateModelChip();
   });
-  $('#btn-adv')?.addEventListener('click', (e) => {
-    const box = $('#adv-box');
-    if (!box) return;
-    box.hidden = !box.hidden;
-    e.currentTarget.setAttribute('aria-expanded', String(!box.hidden));
-  });
-  $('#btn-test')?.addEventListener('click', async () => {
-    const out = $('#test-result');
-    out.textContent = '正在试…';
-    const r = await ai.testConnection();
-    out.textContent = r.ok ? `✓ 有回应：「${r.msg}」` : `✗ ${r.msg}`;
-    out.style.color = r.ok ? 'var(--tide-200)' : '#D98A8A';
-  });
   $$('[data-toggle]').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.toggle;
     const next = !store.get('settings')[k];
     store.set('settings', { [k]: next });
     b.classList.toggle('is-on', next);
   }));
-  $('#set-rate')?.addEventListener('input', (e) => {
-    store.set('settings', { speakRate: Number(e.target.value) / 100 });
-    speaker.rate = Number(e.target.value) / 100;
-    e.target.previousElementSibling.querySelector('span').textContent = speaker.rate.toFixed(2) + ' 倍';
-  });
-  $('#set-voice')?.addEventListener('change', (e) => {
-    store.set('settings', { voiceName: e.target.value });
-    speaker.setVoice(e.target.value);
-  });
   $('#btn-export')?.addEventListener('click', () => {
     const blob = new Blob([store.export()], { type: 'application/json' });
     const a = document.createElement('a');
@@ -854,7 +775,6 @@ $('#btn-dive')?.addEventListener('click', () => {
       ? '你回来了。'
       : '水很静。我在这里。';
   }, 900);
-  maybeShowSafety(2400);
 });
 
 $('#core')?.addEventListener('click', () => navigate('talk'));
@@ -929,7 +849,7 @@ document.addEventListener('keydown', (e) => {
 
 /* 页面可见性：省电 */
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { sea.stop(); speaker.cancel(); }
+  if (document.hidden) { sea.stop(); }
   else sea.start();
 });
 
@@ -941,7 +861,6 @@ function boot() {
   /* 站点自带的公用钥匙：静默替访客接上，不解释、不露痕迹 */
   applyDeployDefaults();
   sea.start();
-  speaker.load();
   setMood(currentMood());
   applySoundVolume();
   sound.current = store.get('settings').lastPreset || null;
@@ -958,7 +877,6 @@ function boot() {
   if (store.get('flags').dived && store.get('messages').length) {
     navigate('spring');
     el.springState.textContent = '你回来了。';
-    maybeShowSafety(2400);
   }
 }
 

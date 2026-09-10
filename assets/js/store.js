@@ -12,9 +12,6 @@ const DEFAULTS = {
     baseUrl: 'https://api.deepseek.com',
     model: 'deepseek-flash', // 上游模型 · 原生多模态
     temperature: 1.0,
-    speakReplies: false,     // 自动朗读 Yumo 的回复
-    speakRate: 1.0,
-    voiceName: '',
     autoDigest: true,        // 自动提炼记忆与画像
     deepMode: false,         // 深潜模式
     soundVolume: 0.85,       // 声境总音量
