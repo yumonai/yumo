@@ -1048,7 +1048,8 @@ $('#drawer-reset')?.addEventListener('click', () => {
 
 function renderLetter(l) {
   const d = new Date(l.date || Date.now());
-  el.letterDate.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+  el.letterDate.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 · ${l.theme || ''}`;
+
   const paras = String(l.body || '').split(/\n{2,}/).filter(Boolean);
   el.letterBody.innerHTML =
     (l.greeting ? `<p class="letter-greeting">${escapeHtml(l.greeting)}</p>` : '') +

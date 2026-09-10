@@ -276,6 +276,7 @@ async function streamVia(ch, messages, { onDelta, signal, temperature } = {}) {
       stream: true,
       max_tokens: ch.maxTokens,   // 各家上限不一样，超出会被判成参数非法
       ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
+      ...(ch.extra || {}),
     }),
     signal,
   });
@@ -361,6 +362,7 @@ async function complete(messages, { temperature = 0.4, json = false, maxTokens =
           max_tokens: maxTokens,
           stream: false,
           ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
+          ...(ch.extra || {}),
           ...(json ? { response_format: { type: 'json_object' } } : {}),
         }),
       });
@@ -435,6 +437,7 @@ export async function insight(history) {
           max_tokens: 90,
           stream: false,
           ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
+          ...(ch.extra || {}),
         }),
       });
     } catch { continue; }
@@ -716,7 +719,11 @@ const LETTER_RULES = `【今天这一封 · 特别的任务】
   不许用编号或小标题，不许每句都押着同一个句式。
 - 全文**至少 240 字，写到 320–400 字**。这一条很重要：写短了这封信就没有重量，
   他点开是要读一段的，不是扫一眼的。分成 2–3 小段，每段至少三句话，段间空一行。
-- 最后留一个问题给他——只有一个，具体、能回答、不玄。问题不要以"你是否愿意"开头。`;
+- 最后留一个问题给他——只有一个。这个问题的讲究：
+  · 从这段文字里**一个具体的意象**出发（那盏灯、那条河、那阵雨、那朵花、那行字、
+    那个爬坡的人），先在问题里把这个意象轻轻放回来，像做一次文学的再创作；
+  · 再从意象滑到他的处境上，落成一个能开口回答的具体问题；
+  · 禁止用抽象大词起头（人生/意义/命运/灵魂），禁止"你是否愿意""你有没有想过"这种套式。`;
 
 /**
  * 写一封「来自 Yumo 的信」。

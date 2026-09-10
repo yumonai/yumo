@@ -3,284 +3,528 @@
   "_版权": "公版作品正常引用；《当下的力量》作者在世，只用概念转述并标注；电影只谈主题不引台词。",
   "version": 1,
   "items": [
-    { "id": "gibran-joy-sorrow", "type": "spiritual", "theme": "喜悦与忧伤",
+    {
+      "id": "gibran-joy-sorrow",
+      "type": "spiritual",
+      "theme": "喜悦与忧伤",
       "text": "你的喜悦，就是那摘下了面具的忧伤。你笑得越深，你心里装着的忧伤就越多。",
-      "author": "纪伯伦", "source": "《先知》· 论悲欢（1923，公版）",
-      "note": "难过不必被消灭，它和高兴是同一块布的两面。" },
-
-    { "id": "rilke-live-questions", "type": "spiritual", "theme": "与问题共存",
+      "author": "纪伯伦",
+      "source": "《先知》· 论悲欢（1923，公版）",
+      "note": "难过不必被消灭，它和高兴是同一块布的两面。"
+    },
+    {
+      "id": "rilke-live-questions",
+      "type": "spiritual",
+      "theme": "与问题共存",
       "text": "对你心里所有未解的谜，要有耐心——去爱问题本身。不要急着寻找答案，现在还给不了你。重点是去活着。也许有一天，不知不觉地，你就活进了答案里。",
-      "author": "里尔克", "source": "《给青年诗人的信》第三封（1929 整理出版，公版）",
-      "note": "不必现在就想明白。适合焦虑。" },
-
-    { "id": "tagore-summer-leaf", "type": "spiritual", "theme": "生与死",
+      "author": "里尔克",
+      "source": "《给青年诗人的信》第三封（1929 整理出版，公版）",
+      "note": "不必现在就想明白。适合焦虑。"
+    },
+    {
+      "id": "tagore-summer-leaf",
+      "type": "spiritual",
+      "theme": "生与死",
       "text": "使生如夏花之绚烂，死如秋叶之静美。",
-      "author": "泰戈尔", "source": "《飞鸟集》第 82 首，郑振铎译（公版）",
-      "note": "把怎么活和怎么走放在一句里说。适合谈失去。" },
-
-    { "id": "zhuangzi-anran", "type": "spiritual", "theme": "与时间和解",
+      "author": "泰戈尔",
+      "source": "《飞鸟集》第 82 首，郑振铎译（公版）",
+      "note": "把怎么活和怎么走放在一句里说。适合谈失去。"
+    },
+    {
+      "id": "zhuangzi-anran",
+      "type": "spiritual",
+      "theme": "与时间和解",
       "text": "安时而处顺，哀乐不能入也。",
-      "author": "庄子", "source": "《庄子·养生主》（公版）",
-      "note": "不是麻木，是和时间的节奏对上了。" },
-
-    { "id": "zhuangzi-jianghu", "type": "spiritual", "theme": "放手",
+      "author": "庄子",
+      "source": "《庄子·养生主》（公版）",
+      "note": "不是麻木，是和时间的节奏对上了。"
+    },
+    {
+      "id": "zhuangzi-jianghu",
+      "type": "spiritual",
+      "theme": "放手",
       "text": "相濡以沫，相煦以湿，不如相忘于江湖。",
-      "author": "庄子", "source": "《庄子·大宗师》（公版）",
-      "note": "讲放手最狠也最温柔的一句。适合关系结束。" },
-
-    { "id": "sushi-dingfengbo", "type": "spiritual", "theme": "风雨与晴",
+      "author": "庄子",
+      "source": "《庄子·大宗师》（公版）",
+      "note": "讲放手最狠也最温柔的一句。适合关系结束。"
+    },
+    {
+      "id": "sushi-dingfengbo",
+      "type": "spiritual",
+      "theme": "风雨与晴",
       "text": "竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。……回首向来萧瑟处，归去，也无风雨也无晴。",
-      "author": "苏轼", "source": "《定风波·莫听穿林打叶声》（公版）",
-      "note": "写于刚被贬黄州。不是雨停了，是雨和晴没什么分别。" },
-
-    { "id": "taoyuanming-xinyuan", "type": "spiritual", "theme": "在吵闹里安静",
+      "author": "苏轼",
+      "source": "《定风波·莫听穿林打叶声》（公版）",
+      "note": "写于刚被贬黄州。不是雨停了，是雨和晴没什么分别。"
+    },
+    {
+      "id": "taoyuanming-xinyuan",
+      "type": "spiritual",
+      "theme": "在吵闹里安静",
       "text": "结庐在人境，而无车马喧。问君何能尔？心远地自偏。",
-      "author": "陶渊明", "source": "《饮酒·其五》（公版）",
-      "note": "不是逃走，是把心挪远一点。" },
-
-    { "id": "wangwei-water-end", "type": "spiritual", "theme": "走到没路的地方",
+      "author": "陶渊明",
+      "source": "《饮酒·其五》（公版）",
+      "note": "不是逃走，是把心挪远一点。"
+    },
+    {
+      "id": "wangwei-water-end",
+      "type": "spiritual",
+      "theme": "走到没路的地方",
       "text": "行到水穷处，坐看云起时。",
-      "author": "王维", "source": "《终南别业》（公版）",
-      "note": "没路不是绝路，是换一种方式看世界。适合卡住的人。" },
-
-    { "id": "laozi-ziren", "type": "spiritual", "theme": "自知",
+      "author": "王维",
+      "source": "《终南别业》（公版）",
+      "note": "没路不是绝路，是换一种方式看世界。适合卡住的人。"
+    },
+    {
+      "id": "laozi-ziren",
+      "type": "spiritual",
+      "theme": "自知",
       "text": "知人者智，自知者明。胜人者有力，自胜者强。",
-      "author": "老子", "source": "《道德经》第三十三章（公版）",
-      "note": "把赢过别人和赢过自己分开。适合自我怀疑。" },
-
-    { "id": "aurelius-dye", "type": "spiritual", "theme": "反刍思维",
+      "author": "老子",
+      "source": "《道德经》第三十三章（公版）",
+      "note": "把赢过别人和赢过自己分开。适合自我怀疑。"
+    },
+    {
+      "id": "aurelius-dye",
+      "type": "spiritual",
+      "theme": "反刍思维",
       "text": "你的灵魂，会被你最常想的事情染上它的颜色。",
-      "author": "马可·奥勒留", "source": "《沉思录》卷五（George Long 英译本 1862，公版）",
-      "note": "两千年前的罗马皇帝和今天说的完全一样。" },
-
-    { "id": "seneca-short-life", "type": "spiritual", "theme": "时间",
+      "author": "马可·奥勒留",
+      "source": "《沉思录》卷五（George Long 英译本 1862，公版）",
+      "note": "两千年前的罗马皇帝和今天说的完全一样。"
+    },
+    {
+      "id": "seneca-short-life",
+      "type": "spiritual",
+      "theme": "时间",
       "text": "不是我们拥有的时间太少，是我们浪费了太多。",
-      "author": "塞涅卡", "source": "《论生命之短暂》（约公元 49 年，公版）",
-      "note": "担心没时间的同时正在花掉时间。" },
-
-    { "id": "pascal-reed", "type": "spiritual", "theme": "脆弱与尊严",
+      "author": "塞涅卡",
+      "source": "《论生命之短暂》（约公元 49 年，公版）",
+      "note": "担心没时间的同时正在花掉时间。"
+    },
+    {
+      "id": "pascal-reed",
+      "type": "spiritual",
+      "theme": "脆弱与尊严",
       "text": "人只是一根芦苇，是自然界最脆弱的东西，但他是一根会思想的芦苇。",
-      "author": "帕斯卡", "source": "《思想录》（1670，公版）",
-      "note": "承认脆弱，然后把脆弱变成尊严。" },
-
-    { "id": "hesse-river", "type": "spiritual", "theme": "时间不是一条线",
+      "author": "帕斯卡",
+      "source": "《思想录》（1670，公版）",
+      "note": "承认脆弱，然后把脆弱变成尊严。"
+    },
+    {
+      "id": "hesse-river",
+      "type": "spiritual",
+      "theme": "时间不是一条线",
       "text": "悉达多留在河边学听河水。他终于听懂：河水在同一时刻无处不在——源头和河口同时存在，少年和老人同时存在。时间不是一条要赶完的线，是同时发生的一切。",
-      "author": "赫尔曼·黑塞", "source": "据《悉达多》(1922)「河岸」一章转述（作者 1962 年去世，中国大陆公版）",
-      "note": "焦虑来自把时间看成必须赶完的线。" },
-
-    { "id": "hesse-wisdom", "type": "spiritual", "theme": "没人能替你活",
+      "author": "赫尔曼·黑塞",
+      "source": "据《悉达多》(1922)「河岸」一章转述（作者 1962 年去世，中国大陆公版）",
+      "note": "焦虑来自把时间看成必须赶完的线。"
+    },
+    {
+      "id": "hesse-wisdom",
+      "type": "spiritual",
+      "theme": "没人能替你活",
       "text": "悉达多离开佛陀时想明白：佛陀自己走过这条路，才能这样平静地微笑；而这条路无法作为礼物送给任何人。知识可以传授，智慧却不能——人可以找到智慧，但无法把它言说、把它交给别人。",
-      "author": "赫尔曼·黑塞", "source": "据《悉达多》(1922)「乔达摩」一章转述（中国大陆公版）",
-      "note": "Yumo 的定位宣言：不能替你活，只能陪你走。" },
-
-    { "id": "hesse-stone", "type": "spiritual", "theme": "不需要有用才值得爱",
+      "author": "赫尔曼·黑塞",
+      "source": "据《悉达多》(1922)「乔达摩」一章转述（中国大陆公版）",
+      "note": "Yumo 的定位宣言：不能替你活，只能陪你走。"
+    },
+    {
+      "id": "hesse-stone",
+      "type": "spiritual",
+      "theme": "不需要有用才值得爱",
       "text": "有人问悉达多为什么也爱一块石头。他说：它是一块石头，正是这个，我爱它。它有形状和颜色，它会变成别的东西，但它此刻是一块石头——这已经足够。",
-      "author": "赫尔曼·黑塞", "source": "据《悉达多》(1922)「轮回」一章转述（中国大陆公版）",
-      "note": "适合觉得自己没什么价值的人。" },
-
-    { "id": "tolle-not-mind", "type": "spiritual", "theme": "你和你的念头",
+      "author": "赫尔曼·黑塞",
+      "source": "据《悉达多》(1922)「轮回」一章转述（中国大陆公版）",
+      "note": "适合觉得自己没什么价值的人。"
+    },
+    {
+      "id": "tolle-not-mind",
+      "type": "spiritual",
+      "theme": "你和你的念头",
       "text": "当你在深夜反复想一件事时——那个能看见这些念头正在转的，是谁？念头是流水，而你是那个站在岸边看水的人。能观察到念头的那个存在，不在念头里。",
-      "author": "艾克哈特·托尔", "source": "据《当下的力量》(1997) 第一章的思想转述（作者在世，不引原文）",
-      "note": "和 Kross 2014 的自我对话研究在同一个地方会合。" },
-
-    { "id": "tolle-pain-body", "type": "spiritual", "theme": "旧伤被唤醒",
+      "author": "艾克哈特·托尔",
+      "source": "据《当下的力量》(1997) 第一章的思想转述（作者在世，不引原文）",
+      "note": "和 Kross 2014 的自我对话研究在同一个地方会合。"
+    },
+    {
+      "id": "tolle-pain-body",
+      "type": "spiritual",
+      "theme": "旧伤被唤醒",
       "text": "托尔把它叫做痛苦之身：旧伤攒下来的一个情绪体。平时睡着，一旦遇到熟悉的情境——一句语气、一个眼神——就会醒过来，把今天的人当成昨天的人对待。认出它，是让它失去力量的第一步；因为你能看着它，而不是变成它。",
-      "author": "艾克哈特·托尔", "source": "据《当下的力量》(1997) 第二章的思想转述（作者在世，不引原文）",
-      "note": "给「我为什么老是为同一件事炸毛」一个名字。" },
-
-    { "id": "tolle-presence", "type": "spiritual", "theme": "回到此刻",
+      "author": "艾克哈特·托尔",
+      "source": "据《当下的力量》(1997) 第二章的思想转述（作者在世，不引原文）",
+      "note": "给「我为什么老是为同一件事炸毛」一个名字。"
+    },
+    {
+      "id": "tolle-presence",
+      "type": "spiritual",
+      "theme": "回到此刻",
       "text": "人大部分的痛苦都不在此刻——是对过去的悔恨、对未来的焦虑。而此刻的身体、呼吸、脚踩着的地面，是焦虑够不着的地方。把注意力放回身体，就是把自己从时间里捞回来。",
-      "author": "艾克哈特·托尔", "source": "据《当下的力量》(1997) 的思想转述（作者在世，不引原文）",
-      "note": "可以做成具体动作，不是道理。" },
-
-    { "id": "camus-sisyphus", "type": "spiritual", "theme": "重复与意义",
+      "author": "艾克哈特·托尔",
+      "source": "据《当下的力量》(1997) 的思想转述（作者在世，不引原文）",
+      "note": "可以做成具体动作，不是道理。"
+    },
+    {
+      "id": "camus-sisyphus",
+      "type": "spiritual",
+      "theme": "重复与意义",
       "text": "攀登山顶的搏斗本身，足以充实一颗人心。应当想象西西弗是幸福的。",
-      "author": "加缪", "source": "《西西弗神话》末章（1942；作者 1960 年去世，中国大陆 2011 年起公版）",
-      "note": "适合讲日常的疲惫与重复。" },
-
-    { "id": "tolstoy-confession", "type": "spiritual", "theme": "想不通就先生活",
+      "author": "加缪",
+      "source": "《西西弗神话》末章（1942；作者 1960 年去世，中国大陆 2011 年起公版）",
+      "note": "适合讲日常的疲惫与重复。"
+    },
+    {
+      "id": "tolstoy-confession",
+      "type": "spiritual",
+      "theme": "想不通就先生活",
       "text": "托尔斯泰写完《战争与和平》、名利双收之后，在《忏悔录》里承认：那时他每天都在想「为什么活着」，想到要藏起绳子才敢进房间。后来把他拉回来的不是哲学——是那些从不思考这件事的普通人，和他们手上的活。",
-      "author": "托尔斯泰", "source": "据《忏悔录》(1879–1882) 前几章的历史事实转述（公版）",
-      "note": "给「道理我都懂但没用」一个出口。" },
-
-    { "id": "dostoevsky-concrete-love", "type": "spiritual", "theme": "爱具体的人",
+      "author": "托尔斯泰",
+      "source": "据《忏悔录》(1879–1882) 前几章的历史事实转述（公版）",
+      "note": "给「道理我都懂但没用」一个出口。"
+    },
+    {
+      "id": "dostoevsky-concrete-love",
+      "type": "spiritual",
+      "theme": "爱具体的人",
       "text": "《卡拉马佐夫兄弟》里，佐西马长老临终前说：爱整个人类很容易，爱眼前那个具体的人很难——他的坏脾气、他的不讲理。但真正的爱在后者。",
-      "author": "陀思妥耶夫斯基", "source": "据《卡拉马佐夫兄弟》(1880) 转述（作者 1881 年去世，公版）",
-      "note": "对「我为什么这么讨厌我爸妈/伴侣」极其有效。" },
-
-    { "id": "goethe-tree-of-life", "type": "spiritual", "theme": "别想太多",
+      "author": "陀思妥耶夫斯基",
+      "source": "据《卡拉马佐夫兄弟》(1880) 转述（作者 1881 年去世，公版）",
+      "note": "对「我为什么这么讨厌我爸妈/伴侣」极其有效。"
+    },
+    {
+      "id": "goethe-tree-of-life",
+      "type": "spiritual",
+      "theme": "别想太多",
       "text": "亲爱的朋友，一切理论都是灰色的，唯有生命之树常青。",
-      "author": "歌德", "source": "《浮士德》「书斋」一幕（1808，公版）",
-      "note": "对付过度思考最短的一句。" },
-
-    { "id": "holderlin-poetic", "type": "spiritual", "theme": "辛苦与诗意",
+      "author": "歌德",
+      "source": "《浮士德》「书斋」一幕（1808，公版）",
+      "note": "对付过度思考最短的一句。"
+    },
+    {
+      "id": "holderlin-poetic",
+      "type": "spiritual",
+      "theme": "辛苦与诗意",
       "text": "人充满劳绩，但还诗意地栖居于这片大地上。",
-      "author": "荷尔德林", "source": "《在柔媚的湛蓝中》（作者 1843 年去世，公版）",
-      "note": "「充满劳绩」在前——它不否认辛苦，才说诗意。" },
-
-    { "id": "diamond-sutra-nonabiding", "type": "spiritual", "theme": "不停在任何地方",
+      "author": "荷尔德林",
+      "source": "《在柔媚的湛蓝中》（作者 1843 年去世，公版）",
+      "note": "「充满劳绩」在前——它不否认辛苦，才说诗意。"
+    },
+    {
+      "id": "diamond-sutra-nonabiding",
+      "type": "spiritual",
+      "theme": "不停在任何地方",
       "text": "应无所住，而生其心。",
-      "author": "《金刚经》", "source": "《金刚经》（公版）。相传六祖惠能闻此句而开悟",
-      "note": "不要停在好的感觉里。对「刚平静下来又被打回去」极有用。" },
-
-    { "id": "jiangjie-rain", "type": "spiritual", "theme": "人变了",
+      "author": "《金刚经》",
+      "source": "《金刚经》（公版）。相传六祖惠能闻此句而开悟",
+      "note": "不要停在好的感觉里。对「刚平静下来又被打回去」极有用。"
+    },
+    {
+      "id": "jiangjie-rain",
+      "type": "spiritual",
+      "theme": "人变了",
       "text": "少年听雨歌楼上，红烛昏罗帐。壮年听雨客舟中，江阔云低、断雁叫西风。而今听雨僧庐下，鬓已星星也。悲欢离合总无情，一任阶前、点滴到天明。",
-      "author": "蒋捷", "source": "《虞美人·听雨》（南宋，公版）",
-      "note": "三段人生，同一场雨。" },
-
-    { "id": "sushi-chibifu", "type": "spiritual", "theme": "取之不尽的东西",
+      "author": "蒋捷",
+      "source": "《虞美人·听雨》（南宋，公版）",
+      "note": "三段人生，同一场雨。"
+    },
+    {
+      "id": "sushi-chibifu",
+      "type": "spiritual",
+      "theme": "取之不尽的东西",
       "text": "惟江上之清风，与山间之明月，耳得之而为声，目遇之而成色，取之无禁，用之不竭。",
-      "author": "苏轼", "source": "《赤壁赋》（公版）",
-      "note": "真正取之不尽的是什么。" },
-
-    { "id": "xin-qiji-lantern", "type": "spiritual", "theme": "一直往外找",
+      "author": "苏轼",
+      "source": "《赤壁赋》（公版）",
+      "note": "真正取之不尽的是什么。"
+    },
+    {
+      "id": "xin-qiji-lantern",
+      "type": "spiritual",
+      "theme": "一直往外找",
       "text": "众里寻他千百度，蓦然回首，那人却在，灯火阑珊处。",
-      "author": "辛弃疾", "source": "《青玉案·元夕》（南宋，公版）",
-      "note": "找了整晚的人，就在没看的地方。" },
-
-    { "id": "wangyangming-flower", "type": "spiritual", "theme": "注意力给出去",
+      "author": "辛弃疾",
+      "source": "《青玉案·元夕》（南宋，公版）",
+      "note": "找了整晚的人，就在没看的地方。"
+    },
+    {
+      "id": "wangyangming-flower",
+      "type": "spiritual",
+      "theme": "注意力给出去",
       "text": "你未看此花时，此花与汝心同归于寂；你来看此花时，则此花颜色一时明白起来。",
-      "author": "王阳明", "source": "《传习录》（明代，公版）",
-      "note": "不是花重要，是你来了。" },
-
-    { "id": "lazar-2005", "type": "science", "theme": "练习正在改变你",
+      "author": "王阳明",
+      "source": "《传习录》（明代，公版）",
+      "note": "不是花重要，是你来了。"
+    },
+    {
+      "id": "lazar-2005",
+      "type": "science",
+      "theme": "练习正在改变你",
       "text": "让 20 位长期禅修者做脑部扫描，发现他们负责注意力、内感受和感官处理的区域（包括前额叶皮层和右侧脑岛）比对照组更厚；年纪越大的修行者差异越明显——练习可能抵消了年龄带来的皮层变薄。",
-      "author": "Lazar 等", "source": "NeuroReport 16(17):1893–1897 (2005)", "doi": "10.1097/01.wnr.0000186598.66243.19",
-      "note": "你每天做的小事，正在物理上改变你。" },
-
-    { "id": "holzel-2011", "type": "science", "theme": "八周就够",
+      "author": "Lazar 等",
+      "source": "NeuroReport 16(17):1893–1897 (2005)",
+      "doi": "10.1097/01.wnr.0000186598.66243.19",
+      "note": "你每天做的小事，正在物理上改变你。"
+    },
+    {
+      "id": "holzel-2011",
+      "type": "science",
+      "theme": "八周就够",
       "text": "16 个从没冥想过的人做完 8 周正念减压课程，扫描发现左侧海马体、后扣带皮层、颞顶联合区的灰质浓度增加了。这些区域和记忆、情绪调节、自我参照加工、换位思考有关。",
-      "author": "Hölzel 等", "source": "Psychiatry Research: Neuroimaging 191(1):36–43 (2011) · PMID 21071182", "doi": "10.1016/j.pscychresns.2010.08.006", "pmid": "21071182",
-      "note": "不是修行一辈子，是两个月。" },
-
-    { "id": "kross-2014", "type": "science", "theme": "和自己说话的方式",
+      "author": "Hölzel 等",
+      "source": "Psychiatry Research: Neuroimaging 191(1):36–43 (2011) · PMID 21071182",
+      "doi": "10.1016/j.pscychresns.2010.08.006",
+      "pmid": "21071182",
+      "note": "不是修行一辈子，是两个月。"
+    },
+    {
+      "id": "kross-2014",
+      "type": "science",
+      "theme": "和自己说话的方式",
       "text": "七项研究（共 585 人）发现：内心自我对话时，不用「我」，改用自己的名字或「你」，能拉开心理距离——面对公开演讲时更少焦虑、表现更好，并且把未来的压力源看成「挑战」而不是「威胁」。",
-      "author": "Kross 等", "source": "Journal of Personality and Social Psychology 106(2):304–324 (2014) · PMID 24467424", "doi": "10.1037/a0035173", "pmid": "24467424",
-      "note": "可以直接教用户的技巧。" },
-
-    { "id": "lieberman-2007", "type": "science", "theme": "把感受说成词",
+      "author": "Kross 等",
+      "source": "Journal of Personality and Social Psychology 106(2):304–324 (2014) · PMID 24467424",
+      "doi": "10.1037/a0035173",
+      "pmid": "24467424",
+      "note": "可以直接教用户的技巧。"
+    },
+    {
+      "id": "lieberman-2007",
+      "type": "science",
+      "theme": "把感受说成词",
       "text": "当人给情绪贴上词语标签（比如「愤怒」）时，杏仁核的反应下降了，同时右侧腹外侧前额叶皮层活动增强，且两者活动呈负相关。",
-      "author": "Lieberman 等", "source": "Psychological Science 18(5):421–428 (2007)", "doi": "10.1111/j.1467-9280.2007.01916.x",
-      "note": "Yumo 整个存在方式的科学注脚。建议作为上线第一封。" },
-
-    { "id": "pennebaker-1997", "type": "science", "theme": "写下来",
+      "author": "Lieberman 等",
+      "source": "Psychological Science 18(5):421–428 (2007)",
+      "doi": "10.1111/j.1467-9280.2007.01916.x",
+      "note": "Yumo 整个存在方式的科学注脚。建议作为上线第一封。"
+    },
+    {
+      "id": "pennebaker-1997",
+      "type": "science",
+      "theme": "写下来",
       "text": "连续几天每天写 15–20 分钟关于痛苦经历的事，比起不写的人，之后几个月的就医次数更少、健康指标更好。",
-      "author": "Pennebaker", "source": "Psychological Science 8(3):162–166 (1997)", "doi": "10.1111/j.1467-9280.1997.tb00403.x",
-      "note": "写给那些「不想打扰别人」的人。" },
-
-    { "id": "holzel-2010", "type": "science", "theme": "恐惧可以缩小",
+      "author": "Pennebaker",
+      "source": "Psychological Science 8(3):162–166 (1997)",
+      "doi": "10.1111/j.1467-9280.1997.tb00403.x",
+      "note": "写给那些「不想打扰别人」的人。"
+    },
+    {
+      "id": "holzel-2010",
+      "type": "science",
+      "theme": "恐惧可以缩小",
       "text": "参加正念减压课程的人，课程结束后右侧杏仁核的灰质密度下降了，下降幅度与他们自述的压力下降幅度相关。",
-      "author": "Hölzel 等", "source": "Social Cognitive and Affective Neuroscience 5(1):11–17 (2010)", "doi": "10.1093/scan/nsp034",
-      "note": "和海马体变厚那条配对：一个变厚，一个变小。" },
-
-    { "id": "grossmann-2014", "type": "science", "theme": "所罗门悖论",
+      "author": "Hölzel 等",
+      "source": "Social Cognitive and Affective Neuroscience 5(1):11–17 (2010)",
+      "doi": "10.1093/scan/nsp034",
+      "note": "和海马体变厚那条配对：一个变厚，一个变小。"
+    },
+    {
+      "id": "grossmann-2014",
+      "type": "science",
+      "theme": "所罗门悖论",
       "text": "人们替朋友分析感情问题时的智慧程度，显著高于分析自己的问题；而拉开心理距离（比如用第三人称想自己）能消除这种不对等。",
-      "author": "Grossmann & Kross", "source": "Psychological Science 25(8):1571–1580 (2014)", "doi": "10.1177/0956797614535400",
-      "note": "解释「道理我都懂，轮到自己就不行」——是人类共有的认知盲区。" },
-
-    { "id": "farb-2007", "type": "science", "theme": "别一直给自己讲故事",
+      "author": "Grossmann & Kross",
+      "source": "Psychological Science 25(8):1571–1580 (2014)",
+      "doi": "10.1177/0956797614535400",
+      "note": "解释「道理我都懂，轮到自己就不行」——是人类共有的认知盲区。"
+    },
+    {
+      "id": "farb-2007",
+      "type": "science",
+      "theme": "别一直给自己讲故事",
       "text": "脑成像研究发现人有两种自我注意的方式：叙事式（回忆、解释我为什么会这样）和体验式（直接感受此刻的身体）。长期冥想者在体验式注意下，负责自我叙事的默认网络活动显著降低。",
-      "author": "Farb 等", "source": "Social Cognitive and Affective Neuroscience 2(4):313–322 (2007)", "doi": "10.1093/scan/nsm030",
-      "note": "你不是在解决问题，是在给自己讲故事。" },
-
-    { "id": "wood-2009", "type": "science", "theme": "空安慰为什么有害",
+      "author": "Farb 等",
+      "source": "Social Cognitive and Affective Neuroscience 2(4):313–322 (2007)",
+      "doi": "10.1093/scan/nsm030",
+      "note": "你不是在解决问题，是在给自己讲故事。"
+    },
+    {
+      "id": "wood-2009",
+      "type": "science",
+      "theme": "空安慰为什么有害",
       "text": "对低自尊的人而言，重复「我是个可爱的人」这类正向自我陈述，反而让情绪更差——因为心里有个声音在反驳。而具体地描述当下（我现在感到胸口发紧）没有这个问题。",
-      "author": "Wood, Perunovic & Lee", "source": "Psychological Science 20(7):860–866 (2009) · PMID 19493324", "doi": "10.1111/j.1467-9280.2009.02370.x", "pmid": "19493324",
-      "note": "Yumo 反对空安慰的科学依据。" },
-
-    { "id": "tang-2007", "type": "science", "theme": "五天，每天二十分钟",
+      "author": "Wood, Perunovic & Lee",
+      "source": "Psychological Science 20(7):860–866 (2009) · PMID 19493324",
+      "doi": "10.1111/j.1467-9280.2009.02370.x",
+      "pmid": "19493324",
+      "note": "Yumo 反对空安慰的科学依据。"
+    },
+    {
+      "id": "tang-2007",
+      "type": "science",
+      "theme": "五天，每天二十分钟",
       "text": "40 名大学生做了 5 天、每天 20 分钟的身心整合训练：注意力测试成绩更好，焦虑、抑郁、愤怒和疲劳下降，活力上升，压力相关的皮质醇下降，免疫反应增强。",
-      "author": "Tang 等", "source": "PNAS 104(43):17152–17156 (2007) · PMID 17940025", "doi": "10.1073/pnas.0707678104", "pmid": "17940025",
-      "note": "门槛低到没有人可以说我做不到。" },
-
-    { "id": "zeidan-2010", "type": "science", "theme": "四天",
+      "author": "Tang 等",
+      "source": "PNAS 104(43):17152–17156 (2007) · PMID 17940025",
+      "doi": "10.1073/pnas.0707678104",
+      "pmid": "17940025",
+      "note": "门槛低到没有人可以说我做不到。"
+    },
+    {
+      "id": "zeidan-2010",
+      "type": "science",
+      "theme": "四天",
       "text": "仅 4 天、每天 20 分钟的正念训练，就能改善工作记忆与执行功能，并降低疲劳与焦虑。",
-      "author": "Zeidan 等", "source": "Consciousness and Cognition 19(2):597–605 (2010)", "doi": "10.1016/j.concog.2010.03.014",
-      "note": "改变不需要几年。" },
-
-    { "id": "barrett-2001", "type": "science", "theme": "说得出具体是哪种难受",
+      "author": "Zeidan 等",
+      "source": "Consciousness and Cognition 19(2):597–605 (2010)",
+      "doi": "10.1016/j.concog.2010.03.014",
+      "note": "改变不需要几年。"
+    },
+    {
+      "id": "barrett-2001",
+      "type": "science",
+      "theme": "说得出具体是哪种难受",
       "text": "能分辨自己情绪的人（我感到的是失望，不是愤怒），在负面情绪下反应更温和、调节能力更强。情绪粒度高的人更不容易用极端方式应对。",
-      "author": "Barrett 等", "source": "Cognition & Emotion 15(6):713–724 (2001)", "doi": "10.1080/02699930143000239",
-      "note": "和情绪标注那条互补：一个讲脑区，一个讲说得细。" },
-
-    { "id": "davidson-2003", "type": "science", "theme": "心和身的边界",
+      "author": "Barrett 等",
+      "source": "Cognition & Emotion 15(6):713–724 (2001)",
+      "doi": "10.1080/02699930143000239",
+      "note": "和情绪标注那条互补：一个讲脑区，一个讲说得细。"
+    },
+    {
+      "id": "davidson-2003",
+      "type": "science",
+      "theme": "心和身的边界",
       "text": "八周正念训练后，受试者接种流感疫苗的抗体滴度显著高于对照组；而且大脑左前侧活动（与积极情绪相关）增强越多的人，抗体上升越多。",
-      "author": "Davidson 等", "source": "Psychosomatic Medicine 65(4):564–570 (2003) · PMID 12883106", "doi": "10.1097/01.PSY.0000077505.67574.E3", "pmid": "12883106",
-      "note": "情绪不只是心情。" },
-
-    { "id": "vago-2012", "type": "science", "theme": "正念为什么有效",
+      "author": "Davidson 等",
+      "source": "Psychosomatic Medicine 65(4):564–570 (2003) · PMID 12883106",
+      "doi": "10.1097/01.PSY.0000077505.67574.E3",
+      "pmid": "12883106",
+      "note": "情绪不只是心情。"
+    },
+    {
+      "id": "vago-2012",
+      "type": "science",
+      "theme": "正念为什么有效",
       "text": "研究者提出正念起效的机制包含自我觉察、自我调节、自我超越三部分，并给出对应的神经回路。它把「冥想有用」从经验上升为可检验的机制。",
-      "author": "Vago & Silbersweig", "source": "Frontiers in Human Neuroscience 6:296 (2012)", "doi": "10.3389/fnhum.2012.00296",
-      "note": "给科学部分一个收口。" },
-
-    { "id": "beethoven-heiligenstadt", "type": "art", "theme": "为了没做完的事留下来",
+      "author": "Vago & Silbersweig",
+      "source": "Frontiers in Human Neuroscience 6:296 (2012)",
+      "doi": "10.3389/fnhum.2012.00296",
+      "note": "给科学部分一个收口。"
+    },
+    {
+      "id": "beethoven-heiligenstadt",
+      "type": "art",
+      "theme": "为了没做完的事留下来",
       "text": "1802 年 10 月，32 岁的贝多芬在维也纳郊外的海利根施塔特给两个弟弟写了一封信，承认自己正在失去听力，曾想过结束生命。但同一封信的最后，他说他决定留下来——因为他觉得在还没创作出心里所有觉得必须创作的东西之前，不能走。他后来又活了 25 年，写出了《第九交响曲》。",
-      "author": "贝多芬（历史事实）", "source": "海利根施塔特遗嘱（1802，公版历史文献）",
-      "note": "活着不是为了感受好一点，是为了把还没做完的事做完。" },
-
-    { "id": "vangogh-starry-night", "type": "art", "theme": "最深的夜空",
+      "author": "贝多芬（历史事实）",
+      "source": "海利根施塔特遗嘱（1802，公版历史文献）",
+      "note": "活着不是为了感受好一点，是为了把还没做完的事做完。"
+    },
+    {
+      "id": "vangogh-starry-night",
+      "type": "art",
+      "theme": "最深的夜空",
       "text": "1889 年 6 月，梵高在法国圣雷米的疗养院里，从房间的铁窗往外看，画下了《星月夜》。画里的星星比现实中大得多、亮得多。他生前只卖出过一幅画。",
-      "author": "梵高（历史事实）", "source": "圣雷米疗养院时期（1889，公版历史事实）",
-      "note": "最深的夜空里，看到的可能是最亮的。" },
-
-    { "id": "mayuan-blank", "type": "art", "theme": "空白的价值",
+      "author": "梵高（历史事实）",
+      "source": "圣雷米疗养院时期（1889，公版历史事实）",
+      "note": "最深的夜空里，看到的可能是最亮的。"
+    },
+    {
+      "id": "mayuan-blank",
+      "type": "art",
+      "theme": "空白的价值",
       "text": "南宋马远的《寒江独钓图》，整幅画几乎全是空白——一个老人，一条船，几笔水纹。但看画的人都能感觉到江面的辽阔和寒冷。空白本身就是内容。",
-      "author": "马远（历史事实）", "source": "《寒江独钓图》（南宋）",
-      "note": "安静、什么都不说的价值。适合讲独处。" },
-
-    { "id": "bach-goldberg", "type": "art", "theme": "绕一圈回到原点",
+      "author": "马远（历史事实）",
+      "source": "《寒江独钓图》（南宋）",
+      "note": "安静、什么都不说的价值。适合讲独处。"
+    },
+    {
+      "id": "bach-goldberg",
+      "type": "art",
+      "theme": "绕一圈回到原点",
       "text": "1741 年巴赫出版《哥德堡变奏曲》：一段咏叹调，接 30 个变奏，最后一个变奏和开头的咏叹调一模一样——转了 30 圈，回到原点，但你已经听完整条河了。",
-      "author": "巴赫（历史事实）", "source": "《哥德堡变奏曲》(1741)",
-      "note": "绕了一圈回到原处，但人已经不是原来那个人。注：不入「为失眠伯爵而作」的传闻。" },
-
-    { "id": "su-hanshitie", "type": "art", "theme": "潦草也是好的",
+      "author": "巴赫（历史事实）",
+      "source": "《哥德堡变奏曲》(1741)",
+      "note": "绕了一圈回到原处，但人已经不是原来那个人。注：不入「为失眠伯爵而作」的传闻。"
+    },
+    {
+      "id": "su-hanshitie",
+      "type": "art",
+      "theme": "潦草也是好的",
       "text": "苏轼被贬黄州的第三年，寒食节，下着雨。他写下两首诗，字越写越大、越写越歪、越写越重——这张《寒食帖》后来被称为天下第三行书。它的好，就好在那个潦草。",
-      "author": "苏轼（历史事实）", "source": "《黄州寒食诗帖》（1082）",
-      "note": "和《定风波》同一个人同一段时间。潦草没被涂掉，才成了传世的东西。" },
-
-    { "id": "wangxizhi-lanting", "type": "art", "theme": "不敢高兴",
+      "author": "苏轼（历史事实）",
+      "source": "《黄州寒食诗帖》（1082）",
+      "note": "和《定风波》同一个人同一段时间。潦草没被涂掉，才成了传世的东西。"
+    },
+    {
+      "id": "wangxizhi-lanting",
+      "type": "art",
+      "theme": "不敢高兴",
       "text": "王羲之在永和九年的那场雅集上，喝到微醺写下《兰亭序》。前半段是春游的欢畅，后半段突然写「死生亦大矣，岂不痛哉」。他承认开心，也承认开心会结束。",
-      "author": "王羲之（历史事实）", "source": "《兰亭集序》（353 年；真迹已失传，现存唐代摹本）",
-      "note": "不因为乐会尽就拒绝乐。适合怕高兴了会更失望的人。" },
-
-    { "id": "hokusai-wave", "type": "art", "theme": "浪与山",
+      "author": "王羲之（历史事实）",
+      "source": "《兰亭集序》（353 年；真迹已失传，现存唐代摹本）",
+      "note": "不因为乐会尽就拒绝乐。适合怕高兴了会更失望的人。"
+    },
+    {
+      "id": "hokusai-wave",
+      "type": "art",
+      "theme": "浪与山",
       "text": "葛饰北斋 71 岁画《神奈川冲浪里》：一个巨浪扑下来，浪的爪子之间，远处是小小的、纹丝不动的富士山。北斋到 89 岁还在说自己画得不够好。",
-      "author": "葛饰北斋（历史事实）", "source": "《富岳三十六景》之一（约 1831）",
-      "note": "浪是大事，山是那个一直在的东西。" },
-
-    { "id": "film-shawshank", "type": "film", "theme": "被困住",
+      "author": "葛饰北斋（历史事实）",
+      "source": "《富岳三十六景》之一（约 1831）",
+      "note": "浪是大事，山是那个一直在的东西。"
+    },
+    {
+      "id": "film-shawshank",
+      "type": "film",
+      "theme": "被困住",
       "text": "《肖申克的救赎》（1994）：一个人被冤枉关了十九年。挖通道的那把小石锤藏在圣经里。他爬过五百码的下水道，在雨里张开手。自由不是墙外的东西，是你决定不让墙进到心里。",
-      "author": "电影《肖申克的救赎》", "source": "导演 Frank Darabont，1994",
-      "note": "只谈主题，不引台词。适合讲被困住。" },
-
-    { "id": "film-okuribito", "type": "film", "theme": "严肃地对待被看不起的事",
+      "author": "电影《肖申克的救赎》",
+      "source": "导演 Frank Darabont，1994",
+      "note": "只谈主题，不引台词。适合讲被困住。"
+    },
+    {
+      "id": "film-okuribito",
+      "type": "film",
+      "theme": "严肃地对待被看不起的事",
       "text": "《入殓师》（2008）：一个失业的大提琴手回老家找了份工作——给死者化妆、穿衣、送行。他一开始觉得羞耻，后来看着一场场告别，慢慢理解了这份工作的重量。严肃地对待一件别人看不起的事，本身就是一种温柔。",
-      "author": "电影《入殓师》", "source": "导演泷田洋二郎，2008",
-      "note": "适合讲职业羞耻、丧亲。" },
-
-    { "id": "film-manchester", "type": "film", "theme": "有些悲伤不会过去",
+      "author": "电影《入殓师》",
+      "source": "导演泷田洋二郎，2008",
+      "note": "适合讲职业羞耻、丧亲。"
+    },
+    {
+      "id": "film-manchester",
+      "type": "film",
+      "theme": "有些悲伤不会过去",
       "text": "《海边的曼彻斯特》（2016）：一个人犯了一个无法原谅自己的错，他没有被原谅，也没有走出来。电影最后他对哥哥的朋友说：我走不出来。有些悲伤不会过去，人可以带着它继续活。这是全片最诚实的地方。",
-      "author": "电影《海边的曼彻斯特》", "source": "导演 Kenneth Lonergan，2016",
-      "note": "适合讲我一直好不起来——Yumo 不会逼你好起来。" },
-
-    { "id": "film-soul", "type": "film", "theme": "活着不是为了等目标",
+      "author": "电影《海边的曼彻斯特》",
+      "source": "导演 Kenneth Lonergan，2016",
+      "note": "适合讲我一直好不起来——Yumo 不会逼你好起来。"
+    },
+    {
+      "id": "film-soul",
+      "type": "film",
+      "theme": "活着不是为了等目标",
       "text": "《心灵奇旅》（2020）：一个爵士乐手终于登上梦寐以求的舞台，演完却觉得「就这样？」然后他发现，真正让人想活的，是一片落叶落在他手上的那个下午。活着不是为了等一个目标达成，是那些没被注意到的分钟。",
-      "author": "电影《心灵奇旅》", "source": "导演 Pete Docter，2020",
-      "note": "适合讲空虚、无意义感。" },
-
-    { "id": "film-coco", "type": "film", "theme": "告别与记得",
+      "author": "电影《心灵奇旅》",
+      "source": "导演 Pete Docter，2020",
+      "note": "适合讲空虚、无意义感。"
+    },
+    {
+      "id": "film-coco",
+      "type": "film",
+      "theme": "告别与记得",
       "text": "《寻梦环游记》（2017）：亡灵世界里，人只有被活着的人记得才不会消失。告别不是关系的结束，遗忘才是。",
-      "author": "电影《寻梦环游记》", "source": "导演 Lee Unkrich，2017",
-      "note": "适合丧亲、讲不知道该不该忘了 TA。" },
-
-    { "id": "film-yiyi", "type": "film", "theme": "只能知道一半",
+      "author": "电影《寻梦环游记》",
+      "source": "导演 Lee Unkrich，2017",
+      "note": "适合丧亲、讲不知道该不该忘了 TA。"
+    },
+    {
+      "id": "film-yiyi",
+      "type": "film",
+      "theme": "只能知道一半",
       "text": "《一一》（2000）：杨德昌的这部电影里，人人都在过自己的日子，谁也说不清别人的事。片中说，我们是不是只能知道一半的事情。每个人都只看得见一半的人生，所以不必急着评判自己。",
-      "author": "电影《一一》", "source": "导演杨德昌，2000",
-      "note": "适合讲我搞砸了。" },
-
-    { "id": "film-eeaao", "type": "film", "theme": "虚无里的具体",
+      "author": "电影《一一》",
+      "source": "导演杨德昌，2000",
+      "note": "适合讲我搞砸了。"
+    },
+    {
+      "id": "film-eeaao",
+      "type": "film",
+      "theme": "虚无里的具体",
       "text": "《瞬息全宇宙》（2022）：一个开洗衣店的妈妈在无数个平行宇宙里都是失败者，最后她选择的是——认真听女儿说一句话，好好处理一张税单。既然一切都不重要，那就好好对待眼前这一件。",
-      "author": "电影《瞬息全宇宙》", "source": "导演 Daniels，2022",
-      "note": "适合讲虚无感、有什么意义。" }
+      "author": "电影《瞬息全宇宙》",
+      "source": "导演 Daniels，2022",
+      "note": "适合讲虚无感、有什么意义。"
+    }
   ]
 }

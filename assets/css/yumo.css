@@ -1286,7 +1286,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 
 /* ── 赞助双按钮 / 联系 YUMO ─────────────────── */
 .pay-actions{margin-top:4px}
-.pay-actions .pay-btn{flex:1.2}
+.pay-actions .pay-btn{flex:1}
 .pay-actions .btn-ghost{flex:1}
 .contact-mail{
   display:block;width:100%;margin:4px 0 0;padding:13px 12px;

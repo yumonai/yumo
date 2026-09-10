@@ -80,7 +80,23 @@ export const DEPLOY = {
       vision: false,                    // 免费名单里没有可用的对话视觉模型
     },
 
-    /* 第三跳：DeepSeek —— 已于 2026-09-10 按你的要求完全撤下。
+    /* 讯飞星火 X2.5 —— 第三跳兜底（走讯飞星辰 MaaS 平台）。
+       2026-09-11 实测：spark-x2.5-4b 可用，限时 0 元/百万 tokens；
+       1.7B 也通（spark-x2.5-1.7b），但 4B 能力更强、同免费，故选 4B。
+       ⚠️ 这是一款思考型模型：不关思考时 token 会被推理吃掉、正文为空
+       （和当年 GLM 思考模型同一个坑），所以 extra 里带 reasoning.effort=none。
+       实测语感：共情到位、零空安慰，略带角色扮演小动作；作为兜底合格。 */
+    {
+      name: 'spark',
+      baseUrl: 'https://maas-api.cn-huabei-1.xf-yun.com/v2',
+      model: 'spark-x2.5-4b',
+      apiKey: 'ak-1aca17f179c214ba207af9d9c6098332',
+      vision: false,
+      maxTokens: 1024,
+      extra: { reasoning: { effort: 'none' } },
+    },
+
+    /* 第三跳（旧）：DeepSeek —— 已于 2026-09-10 按你的要求完全撤下。
        （原主钥匙 sk-53c908… 已作废，如仍在使用请去后台删除。） */
   ],
 
