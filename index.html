@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="abyss">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+<title>Yumo · 深海陪伴者 — Your Deep Companion</title>
+<meta name="description" content="Yumo · 深海陪伴者 — 你未说出口的，海水都记得。一个神秘、宁静、私密的灵性陪伴空间。" />
+<meta name="theme-color" content="#03060B" />
+<meta name="color-scheme" content="dark" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Yumo" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Yumo · 深海陪伴者 — Your Deep Companion" />
+<meta property="og:description" content="你未说出口的，海水都记得 · What you never said, the sea remembers." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23EAF7FF'/%3E%3Cstop offset='0.45' stop-color='%238ECAE6'/%3E%3Cstop offset='1' stop-color='%230A1320'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%2303060B'/%3E%3Ccircle cx='16' cy='16' r='9' fill='url(%23g)'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="assets/css/yumo.css" />
+</head>
+<body>
+
+<!-- ══════════ 深海场景（常驻画布，所有视图之下） ══════════ -->
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="vignette" aria-hidden="true"></div>
+<div id="grain" aria-hidden="true"></div>
+
+<!-- ══════════ 潜伏的耳语 / 静默的提示 ══════════ -->
+<div id="whisper" class="whisper" role="status" aria-live="polite"></div>
+
+<!-- ══════════ 一、门槛 ══════════ -->
+<main id="view-threshold" class="view view--active" data-view="threshold">
+  <div class="threshold">
+    <div class="threshold__mark">
+      <span class="brand">YUMO</span>
+      <span class="brand-sub">深海陪伴者 · YOUR DEEP COMPANION</span>
+    </div>
+
+    <h1 class="threshold__line">
+      你未说出口的，<br />海水都记得。
+    </h1>
+
+    <p class="threshold__sub">
+      这里没有别人。<br />
+      只有一片很深、很静的水，和一个愿意一直听下去的存在。
+    </p>
+
+    <button class="sink-btn" id="btn-dive" type="button">
+      <span class="sink-btn__ring"></span>
+      <span class="sink-btn__label">沉 入</span>
+    </button>
+
+    <nav class="threshold__foot">
+      <button type="button" data-goto="talk" class="link-quiet">直接倾诉</button>
+      <span class="dot-sep">·</span>
+      <button type="button" data-goto="sound" class="link-quiet">先听听水声</button>
+      <span class="dot-sep">·</span>
+      <button type="button" data-goto="settings" class="link-quiet">设置</button>
+    </nav>
+
+    <p class="threshold__note">你的每一句话，只留在这台设备里。Yumo 不会记得你不想被记住的事。</p>
+  </div>
+</main>
+
+<!-- ══════════ 二、深处（主厅） ══════════ -->
+<main id="view-spring" class="view" data-view="spring">
+  <header class="spring__top">
+    <button class="orb-btn" id="btn-sanctuary" type="button" title="回声海 · 他人留下的心声">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+      <span>回声海</span>
+    </button>
+    <button class="orb-btn orb-btn--plain" id="btn-menu" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+    </button>
+  </header>
+
+  <div class="spring__stage">
+    <div class="core" id="core" role="button" tabindex="0" aria-label="Yumo">
+      <div class="core__halo"></div>
+      <div class="core__halo core__halo--2"></div>
+      <div class="core__body"></div>
+      <div class="core__rim"></div>
+    </div>
+
+    <div class="spring__name" id="spring-name">Yumo</div>
+    <div class="spring__state" id="spring-state">水很静。我在这里。</div>
+  </div>
+
+  <div class="spring__hints">
+    <button class="hint" data-goto="talk" type="button">
+      <span class="hint__arrow">↑</span>
+      <span class="hint__label">浮 上 · 倾诉</span>
+      <span class="hint__desc">心灵对话 · 你说我听</span>
+    </button>
+    <button class="hint" data-goto="garden" type="button">
+      <span class="hint__arrow">↓</span>
+      <span class="hint__label">沉 下 · 回响</span>
+      <span class="hint__desc">你的星图 · 记忆与回声</span>
+    </button>
+  </div>
+
+  <footer class="spring__dock">
+    <button class="dock__item" data-goto="sound" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3v18M7 8v8M17 8v8M3 11v2M21 11v2"/></svg>
+      <span>声境</span>
+    </button>
+    <button class="dock__item" data-goto="drift" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 5.5h14M5 12h14M5 18.5h9"/><circle cx="18.5" cy="18.5" r="2"/></svg>
+      <span>浮念</span>
+    </button>
+    <button class="dock__item" data-goto="mirror" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="4.5" y="3.5" width="15" height="12" rx="2"/><path d="M7 19.5h10M12 15.5v4"/><path d="M9.5 9.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5"/></svg>
+      <span>心象</span>
+    </button>
+    <button class="dock__item" data-goto="settings" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/></svg>
+      <span>器皿</span>
+    </button>
+  </footer>
+</main>
+
+<!-- ══════════ 三、倾诉 ══════════ -->
+<main id="view-talk" class="view view--sheet" data-view="talk">
+  <header class="bar">
+    <button class="bar__back" data-goto="spring" type="button" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="bar__center">
+      <span class="bar__title">心灵对话</span>
+      <span class="bar__sub" id="talk-sub">Yumo 正在水底等你</span>
+    </div>
+    <button class="bar__action" id="btn-deep" type="button" title="深潜 · 由 Yumo 引导">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3v6M12 15v6M5.6 5.6l4.2 4.2M14.2 14.2l4.2 4.2M18.4 5.6l-4.2 4.2M9.8 14.2l-4.2 4.2"/></svg>
+      <span>深潜</span>
+    </button>
+  </header>
+
+  <div class="thread" id="thread" role="log" aria-live="polite"></div>
+
+  <div class="composer-wrap">
+    <div class="attachment-strip" id="attachment-strip" hidden></div>
+    <div class="rec-bar" id="rec-bar" hidden>
+      <div class="rec-bar__wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <span class="rec-bar__text">正在听你说…</span>
+      <button class="rec-bar__stop" id="btn-rec-stop" type="button">停下</button>
+    </div>
+    <div class="composer">
+      <button class="comp-btn" id="btn-image" type="button" title="附上一张图">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.6" cy="10" r="1.6"/><path d="M3.6 17l4.6-4.5 3.4 3.2 3-2.7 5.8 5"/></svg>
+      </button>
+      <button class="comp-btn" id="btn-mic" type="button" title="说给我听">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0013 0M12 18v3"/></svg>
+      </button>
+      <textarea id="input" rows="1" placeholder="让话自己流出来…" autocomplete="off"></textarea>
+      <button class="comp-send" id="btn-send" type="button" aria-label="送出">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+    <div class="composer-foot">
+      <span id="talk-hint">Enter 送出 · Shift+Enter 换行</span>
+      <span id="talk-model" class="mono-chip">未连接</span>
+    </div>
+  </div>
+  <input type="file" id="file-image" accept="image/*" hidden />
+</main>
+
+<!-- ══════════ 四、潮汐花园 ══════════ -->
+<main id="view-garden" class="view view--sheet" data-view="garden">
+  <header class="bar">
+    <button class="bar__back" data-goto="spring" type="button" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="bar__center">
+      <span class="bar__title">潮汐花园</span>
+      <span class="bar__sub">你走过的水痕</span>
+    </div>
+    <div class="bar__action bar__action--ghost"></div>
+  </header>
+
+  <div class="seg" id="garden-seg" role="tablist">
+    <button class="seg__i is-on" data-tab="profile" type="button" role="tab">星 图</button>
+    <button class="seg__i" data-tab="memory" type="button" role="tab">记 忆</button>
+    <button class="seg__i" data-tab="echo" type="button" role="tab">回 声</button>
+    <button class="seg__i" data-tab="log" type="button" role="tab">潮 汐 记</button>
+  </div>
+
+  <div class="scroll" id="garden-body"></div>
+</main>
+
+<!-- ══════════ 五、心象 ══════════ -->
+<main id="view-mirror" class="view view--sheet" data-view="mirror">
+  <header class="bar">
+    <button class="bar__back" data-goto="spring" type="button" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="bar__center">
+      <span class="bar__title">心象</span>
+      <span class="bar__sub">水面上映出的，是你自己</span>
+    </div>
+    <div class="bar__action bar__action--ghost"></div>
+  </header>
+  <div class="scroll" id="mirror-body"></div>
+</main>
+
+<!-- ══════════ 六、声境 ══════════ -->
+<main id="view-sound" class="view view--sheet" data-view="sound">
+  <header class="bar">
+    <button class="bar__back" data-goto="spring" type="button" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="bar__center">
+      <span class="bar__title">声境</span>
+      <span class="bar__sub">让水声替你挡一挡世界</span>
+    </div>
+    <button class="bar__action" id="btn-timer" type="button"><span id="timer-label">不限时</span></button>
+  </header>
+
+  <div class="scroll">
+    <div class="sound-hero">
+      <canvas id="wave-canvas"></canvas>
+      <div class="sound-hero__pulse" id="sound-pulse"></div>
+    </div>
+    <div class="sound-mix" id="sound-mix"></div>
+    <div class="sound-rows" id="sound-rows"></div>
+    <p class="note-quiet">所有水声都由你的设备实时合成，不加载任何外部音频。戴上耳机，会更深一点。</p>
+  </div>
+</main>
+
+<!-- ══════════ 七、浮念 ══════════ -->
+<main id="view-drift" class="view view--sheet" data-view="drift">
+  <header class="bar">
+    <button class="bar__back" data-goto="spring" type="button" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="bar__center">
+      <span class="bar__title">浮念</span>
+      <span class="bar__sub">来不及说出口的，先放在水里</span>
+    </div>
+    <div class="bar__action bar__action--ghost"></div>
+  </header>
+  <div class="scroll">
+    <div class="drift-in">
+      <textarea id="drift-input" rows="3" placeholder="一个念头、一句话、一瞬的感觉…"></textarea>
+      <div class="drift-in__row">
+        <button class="link-quiet" id="drift-share" type="button">交给 Yumo 看</button>
+        <button class="pill-btn" id="drift-save" type="button">放 入 水 中</button>
+      </div>
+    </div>
+    <div id="drift-list" class="drift-list"></div>
+  </div>
+</main>
+
+<!-- ══════════ 八、器皿（设置） ══════════ -->
+<main id="view-settings" class="view view--sheet" data-view="settings">
+  <header class="bar">
+    <button class="bar__back" data-goto="spring" type="button" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="bar__center">
+      <span class="bar__title">器皿</span>
+      <span class="bar__sub">调校你与 Yumo 之间的水</span>
+    </div>
+    <div class="bar__action bar__action--ghost"></div>
+  </header>
+
+  <div class="scroll" id="settings-body"></div>
+</main>
+
+<!-- ══════════ 回声海（他人留下的心声） ══════════ -->
+<div class="veil" id="sanctuary-veil" hidden>
+  <div class="veil__head">
+    <span class="veil__title">回 声 海</span>
+    <button class="veil__close" id="sanctuary-close" type="button" aria-label="关闭">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <canvas id="sea-canvas"></canvas>
+  <p class="veil__tip">每一粒光，都是一个人没说完的话。轻触一颗，听一听。</p>
+</div>
+
+<!-- ══════════ 读星卡片 ══════════ -->
+<div class="modal" id="star-modal" hidden>
+  <div class="modal__card" id="star-card"></div>
+</div>
+
+<!-- ══════════ 侧边菜单 ══════════ -->
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer__scrim" data-close="drawer"></div>
+  <aside class="drawer__panel">
+    <div class="drawer__brand">
+      <span class="brand brand--sm">YUMO</span>
+      <span class="brand-sub">深海陪伴者</span>
+    </div>
+    <nav class="drawer__nav" id="drawer-nav"></nav>
+    <div class="drawer__foot">
+      <p class="drawer__quote">「光是要沉下去，才看得见。」</p>
+      <button class="link-quiet" id="drawer-reset" type="button">清空这片水</button>
+    </div>
+  </aside>
+</div>
+
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
