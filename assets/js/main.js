@@ -267,7 +267,7 @@ function hideInsightPopup() {
   if (!box || box.hidden) return;
   box.classList.remove('is-in');
   if (insightHideTimer) clearTimeout(insightHideTimer);
-  insightHideTimer = setTimeout(() => { box.hidden = true; insightHideTimer = null; }, 900);
+  insightHideTimer = setTimeout(() => { box.hidden = true; insightHideTimer = null; }, 1150);
 }
 
 function showFeeling(text = 'Yumo 正在感受') {
@@ -921,7 +921,7 @@ function openContact() {
       <button class="contact-mail" type="button" data-mail="${EMAIL}">${EMAIL}</button>
       <p class="contact-hint">点一下复制</p>
     </div>`;
-  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 500); };
+  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 700); };
   wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
   document.body.appendChild(wrap);
   requestAnimationFrame(() => wrap.classList.add('is-in'));
@@ -959,7 +959,7 @@ function openPayChooser() {
         </button>
       </div>
     </div>`;
-  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 500); };
+  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 700); };
   wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
   document.body.appendChild(wrap);
   requestAnimationFrame(() => wrap.classList.add('is-in'));
@@ -978,7 +978,7 @@ function openPayZoom(src, alt) {
       <img src="${src}" alt="${alt || ''}" />
       <figcaption>${alt || ''} · 点任意处收起</figcaption>
     </figure>`;
-  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 500); };
+  const close = () => { wrap.classList.remove('is-in'); setTimeout(() => wrap.remove(), 700); };
   wrap.addEventListener('click', close);
   document.body.appendChild(wrap);
   requestAnimationFrame(() => wrap.classList.add('is-in'));
@@ -1097,7 +1097,7 @@ function closeLetterSheet() {
   clearTimeout(letterTimer);
   el.letterSheet.classList.remove('is-open');
   el.letterSheet.classList.remove('is-in');
-  setTimeout(() => { el.letterSheet.hidden = true; }, 620);
+  setTimeout(() => { el.letterSheet.hidden = true; }, 720);
 }
 
 function refreshLetterDot() {
