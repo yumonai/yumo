@@ -1,29 +1,59 @@
 {
   "_说明": "月下音乐会 · 曲目全部为公有领域作曲家的公版/自由许可录音，自托管于本仓库。",
   "tracks": [
-    { "id": "ode", "title": "欢乐颂", "sub": "第九交响曲 · 第四乐章", "composer": "贝多芬",
-      "file": "assets/music/ode.m4a", "cover": "assets/music/covers/beethoven.jpg",
-      "dur": "2:46", "credit": "演奏 vlad makarov · CC BY-NC-ND 3.0（jamendo）" },
-    { "id": "pastoral", "title": "田园", "sub": "第六交响曲 · 第一乐章", "composer": "贝多芬",
-      "file": "assets/music/pastoral.m4a", "cover": "assets/music/covers/pastoral.jpg",
-      "dur": "9:26", "credit": "公版录音（Wikimedia Commons）" },
-    { "id": "pathetique", "title": "悲怆 · 如歌的柔板", "sub": "第八钢琴奏鸣曲 · 第二乐章", "composer": "贝多芬",
-      "file": "assets/music/pathetique.m4a", "cover": "assets/music/covers/beethoven.jpg",
-      "dur": "6:21", "credit": "演奏 Daniel Veesey · 公版（Wikimedia Commons）" },
-    { "id": "jesu", "title": "耶路撒冷，我愿你", "sub": "Jesu, Joy of Man's Desiring · BWV 147", "composer": "巴赫",
-      "file": "assets/music/jesu.m4a", "cover": "assets/music/covers/bach.jpg",
-      "dur": "2:39", "credit": "公版录音（Wikimedia Commons）" },
-    { "id": "gymnopedie", "title": "裸体歌舞第一号", "sub": "Gymnopédie No.1", "composer": "萨蒂",
-      "file": "assets/music/gymnopedie.m4a", "cover": "assets/music/covers/satie.jpg",
-      "dur": "3:07", "credit": "演奏 Kevin MacLeod · CC BY 3.0（Wikimedia Commons）" },
-    { "id": "clair", "title": "月光", "sub": "Suite bergamasque · 第三乐章", "composer": "德彪西",
-      "file": "assets/music/clair.m4a", "cover": "assets/music/covers/debussy.jpg",
-      "dur": "4:37", "credit": "公版录音（Public Domain Mark 1.0）" },
-    { "id": "nocturne", "title": "降E大调夜曲", "sub": "Nocturnes · Op.9 No.2", "composer": "肖邦",
-      "file": "assets/music/nocturne.m4a", "cover": "assets/music/covers/chopin.jpg",
-      "dur": "4:10", "credit": "CC BY-NC-ND 3.0（Wikimedia Commons）" },
-    { "id": "canon", "title": "D 大调卡农", "sub": "Canon in D major, P.37", "composer": "帕赫贝尔",
-      "file": "assets/music/canon.m4a", "cover": "assets/music/covers/pachelbel.jpg",
-      "dur": "2:37", "credit": "Avalon Audio · CC BY-NC-ND 3.0（jamendo）" }
+    {
+      "id": "pastoral",
+      "title": "Symphony No. 6 in F Major, Op. 68 \"Pastoral\" – I. Allegro ma non troppo",
+      "sub": "第六交响曲「田园」· 第一乐章",
+      "composer": "贝多芬",
+      "file": "assets/music/pastoral.m4a",
+      "cover": "assets/music/covers/pastoral.jpg",
+      "credit": "公版录音（Wikimedia Commons）"
+    },
+    {
+      "id": "pathetique",
+      "title": "Piano Sonata No. 8 in C Minor, Op. 13 \"Pathétique\" – II. Adagio cantabile",
+      "sub": "第八钢琴奏鸣曲「悲怆」· 第二乐章",
+      "composer": "贝多芬",
+      "file": "assets/music/pathetique.m4a",
+      "cover": "assets/music/covers/beethoven.jpg",
+      "credit": "演奏 Daniel Veesey · 公版（Wikimedia Commons）"
+    },
+    {
+      "id": "jesu",
+      "title": "Jesu, Joy of Man's Desiring, BWV 147",
+      "sub": "康塔塔 BWV 147 · 选段",
+      "composer": "巴赫",
+      "file": "assets/music/jesu.m4a",
+      "cover": "assets/music/covers/bach.jpg",
+      "credit": "公版录音（Wikimedia Commons）"
+    },
+    {
+      "id": "gymnopedie",
+      "title": "Gymnopédie No. 1",
+      "sub": "裸体歌舞 · 第一号",
+      "composer": "萨蒂",
+      "file": "assets/music/gymnopedie.m4a",
+      "cover": "assets/music/covers/satie.jpg",
+      "credit": "演奏 Kevin MacLeod · CC BY 3.0（Wikimedia Commons）"
+    },
+    {
+      "id": "clair",
+      "title": "Clair de Lune",
+      "sub": "贝加马斯克组曲 · 第三乐章",
+      "composer": "德彪西",
+      "file": "assets/music/clair.m4a",
+      "cover": "assets/music/covers/debussy.jpg",
+      "credit": "公版录音（Public Domain Mark 1.0）"
+    },
+    {
+      "id": "nocturne",
+      "title": "Nocturne in E-Flat Major, Op. 9 No. 2",
+      "sub": "夜曲 · Op. 9 第二首",
+      "composer": "肖邦",
+      "file": "assets/music/nocturne.m4a",
+      "cover": "assets/music/covers/chopin.jpg",
+      "credit": "CC BY-NC-ND 3.0（Wikimedia Commons）"
+    }
   ]
 }

@@ -724,24 +724,6 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 .echo-card__foot button:hover{color:var(--tide-200)}
 
 /* ── 12. 声境 ──────────────────────────────────────────────── */
-.sound-hero{
-  position:relative;height:172px;display:grid;place-items:center;margin-bottom:6px;
-}
-#wave-canvas{position:absolute;inset:0;width:100%;height:100%}
-.sound-hero__pulse{
-  position:relative;width:104px;height:104px;border-radius:50%;
-  border:1px solid var(--line-strong);
-  display:grid;place-items:center;
-  background:radial-gradient(circle,rgba(168,216,232,.13),transparent 68%);
-  animation:core-halo var(--t-swell) var(--ease-soft) infinite;
-}
-.sound-hero__pulse::after{
-  content:"";width:11px;height:11px;border-radius:50%;
-  background:radial-gradient(circle,var(--mist-000),var(--tide-300));
-  box-shadow:0 0 26px rgba(168,216,232,.66);
-}
-.sound-hero__pulse.is-on{animation-duration:5s}
-.sound-hero__pulse.is-on::after{animation:core-breathe 5s var(--ease-soft) infinite}
 
 .sound-mix{
   display:flex;flex-wrap:wrap;gap:9px;justify-content:center;
@@ -1306,7 +1288,6 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 
 
 /* ── 月下音乐会 ─────────────────────────────── */
-.music-intro{margin:0 0 14px;font-size:12px;line-height:1.95;letter-spacing:.05em;color:var(--mist-300)}
 .music-list{display:flex;flex-direction:column;gap:9px}
 .music-row{
   position:relative;display:flex;align-items:center;gap:12px;width:100%;
@@ -1324,24 +1305,9 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 .music-row__cover img{width:100%;height:100%;object-fit:cover;display:block;
   filter:saturate(.85) brightness(.92);transition:filter var(--dur-med) var(--ease-soft)}
 .music-row.is-on .music-row__cover img{filter:none}
-.music-row__eq{
-  position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;
-  gap:3px;padding:8px;background:rgba(2,5,9,.55);
-}
-.music-row.is-on:not(.is-paused) .music-row__eq{display:flex}
-.music-row__eq u{
-  width:3px;border-radius:2px 2px 0 0;background:var(--tide-100);
-  animation:eq .9s var(--ease-soft) infinite;
-}
-.music-row__eq u:nth-child(2){animation-delay:.22s}
-.music-row__eq u:nth-child(3){animation-delay:.44s}
-@keyframes eq{0%,100%{height:30%}50%{height:86%}}
 .music-row__txt{flex:1;min-width:0}
 .music-row__txt b{display:block;text-decoration:none;font-weight:400;font-size:13px;letter-spacing:.05em;color:var(--mist-050);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .music-row__txt span{display:block;text-decoration:none;font-size:10.5px;letter-spacing:.04em;color:var(--mist-400);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.music-row__time{flex:none;font-family:var(--font-mono);font-size:10px;color:var(--mist-400)}
-.music-row__bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:transparent}
-.music-row__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--tide-400),var(--tide-200));transition:width .3s linear}
 .music-credit{margin:14px 0 0;font-size:10px;letter-spacing:.05em;line-height:1.8;color:var(--mist-400);opacity:.8}
 
 /* ── 信件配图 ── */
@@ -1350,4 +1316,70 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   width:100%;max-height:240px;object-fit:contain;display:block;
   border-radius:var(--r-xs);background:rgba(3,6,11,.55);
   border:1px solid var(--line-soft);
+}
+
+/* ── 播放条（流媒体样式）────────────────────── */
+.player-bar{
+  display:flex;align-items:center;gap:13px;
+  padding:13px 14px;margin-bottom:12px;
+  border-radius:var(--r-sm);
+  border:1px solid var(--line-strong);
+  background:linear-gradient(150deg,rgba(210,236,250,.07),rgba(210,236,250,.02));
+  box-shadow:var(--highlight-inset);
+}
+.player-bar__cover{
+  flex:none;width:58px;height:58px;border-radius:var(--r-xs);
+  background:var(--abyss-200) center/cover no-repeat;
+  border:1px solid var(--line-soft);
+  position:relative;
+}
+.player-bar.is-playing .player-bar__cover::after{
+  content:"";position:absolute;inset:0;border-radius:var(--r-xs);
+  box-shadow:inset 0 0 0 1px rgba(168,216,232,.28);
+}
+.player-bar__mid{flex:1;min-width:0}
+.player-bar__mid b{
+  display:block;text-decoration:none;font-weight:400;font-size:12.5px;
+  letter-spacing:.03em;color:var(--mist-050);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.player-bar__mid > span{
+  display:block;text-decoration:none;font-size:10.5px;letter-spacing:.04em;
+  color:var(--mist-400);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.player-bar__track{
+  height:3px;border-radius:2px;background:rgba(210,236,250,.10);
+  margin-top:9px;cursor:pointer;
+}
+.player-bar__track i{
+  display:block;height:100%;width:0;border-radius:2px;
+  background:linear-gradient(90deg,var(--tide-400),var(--tide-200));
+  transition:width .25s linear;
+}
+.player-bar__times{
+  display:flex;justify-content:space-between;margin-top:4px;
+  font-family:var(--font-mono);font-size:9.5px;color:var(--mist-400);
+}
+.player-bar__ctrl{flex:none;display:flex;align-items:center;gap:4px}
+.player-bar__btn{
+  width:34px;height:34px;border-radius:50%;border:none;background:none;
+  color:var(--mist-200);cursor:pointer;display:grid;place-items:center;
+  transition:color var(--dur-fast) var(--ease-soft),background var(--dur-fast) var(--ease-soft);
+}
+.player-bar__btn svg{width:19px;height:19px}
+.player-bar__btn:hover{color:var(--mist-000);background:rgba(210,236,250,.07)}
+.player-bar__btn--main{
+  width:44px;height:44px;margin:0 2px;
+  border:1px solid var(--line-strong);
+  background:radial-gradient(circle at 34% 30%,rgba(168,216,232,.20),rgba(210,236,250,.04));
+  color:var(--tide-050);
+}
+.player-bar__btn--main svg{width:21px;height:21px}
+.player-bar__btn--main:hover{border-color:var(--tide-400);box-shadow:0 6px 22px rgba(121,186,211,.22)}
+
+/* ── 更多乐曲 ── */
+.music-more{
+  margin:13px 0 0;text-align:center;
+  font-size:10.5px;letter-spacing:.22em;text-indent:.22em;color:var(--mist-400);
 }

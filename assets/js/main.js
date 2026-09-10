@@ -41,8 +41,6 @@ const el = {
   driftInput: $('#drift-input'),
   soundMix: $('#sound-mix'),
   soundRows: $('#sound-rows'),
-  soundPulse: $('#sound-pulse'),
-  waveCanvas: $('#wave-canvas'),
   recBar: $('#rec-bar'),
   attStrip: $('#attachment-strip'),
   fileInput: $('#file-image'),
@@ -111,8 +109,7 @@ function navigate(to) {
   if (to === 'garden') { garden?.paint(); }
   if (to === 'settings') paintSettings();
   if (to === 'drift') paintDrift();
-  if (to === 'sound') { paintSound(); startWaveViz(); }
-  if (to !== 'sound') stopWaveViz();
+  if (to === 'sound') paintSound();
 
   setMood(to === 'talk' ? currentMood() : currentMood());
 }
@@ -576,7 +573,6 @@ function paintSound() {
       const id = r.dataset.snd;
       sound.set(id, Number(r.value) / 100);
       el.soundRows.querySelector(`[data-solo="${id}"]`)?.classList.toggle('is-on', Number(r.value) > 1);
-      syncPulse();
     });
   });
 
@@ -599,70 +595,8 @@ function paintSound() {
     if (lab) lab.textContent = e.target.value + '%';
   });
 
-  syncPulse();
 }
 
-function syncPulse() {
-  const on = sound.active;
-  el.soundPulse?.classList.toggle('is-on', on);
-}
-
-/* 波形可视化 */
-let waveRaf = null;
-function startWaveViz() {
-  const cv = el.waveCanvas;
-  if (!cv) return;
-  const ctx = cv.getContext('2d');
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const resize = () => {
-    const r = cv.getBoundingClientRect();
-    cv.width = Math.max(1, Math.floor(r.width * dpr));
-    cv.height = Math.max(1, Math.floor(r.height * dpr));
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  };
-  resize();
-  window.addEventListener('resize', resize);
-  let t = 0;
-  const draw = () => {
-    const r = cv.getBoundingClientRect();
-    const W = r.width, H = r.height;
-    ctx.clearRect(0, 0, W, H);
-    const spec = sound.getSpectrum();
-    const on = sound.active;
-    const bars = 46;
-    const bw = W / bars;
-    for (let i = 0; i < bars; i++) {
-      const p = i / bars;
-      let amp;
-      if (spec && on) {
-        const idx = Math.floor(Math.pow(p, 1.5) * (spec.length * 0.55));
-        amp = (spec[idx] / 255) * 0.85 + 0.06;
-      } else {
-        amp = 0.05 + 0.03 * Math.sin(t * 0.7 + i * 0.5);
-      }
-      const h = Math.max(2, amp * H * 0.62);
-      const x = i * bw + bw * 0.22;
-      const g = ctx.createLinearGradient(0, H / 2 - h / 2, 0, H / 2 + h / 2);
-      g.addColorStop(0, 'rgba(223,243,250,.10)');
-      g.addColorStop(0.5, `rgba(168,216,232,${0.20 + amp * 0.6})`);
-      g.addColorStop(1, 'rgba(223,243,250,.10)');
-      ctx.fillStyle = g;
-      const w = bw * 0.56;
-      ctx.beginPath();
-      ctx.roundRect(x, H / 2 - h / 2, w, h, w / 2);
-      ctx.fill();
-    }
-    t += 1 / 60;
-    waveRaf = requestAnimationFrame(draw);
-  };
-  draw();
-  el._waveResize = resize;
-}
-function stopWaveViz() {
-  if (waveRaf) cancelAnimationFrame(waveRaf);
-  waveRaf = null;
-  if (el._waveResize) window.removeEventListener('resize', el._waveResize);
-}
 
 /* 定时 */
 function startSoundTimer(minutes) {
