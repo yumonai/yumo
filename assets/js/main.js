@@ -1074,9 +1074,19 @@ $('#drawer-reset')?.addEventListener('click', () => {
 
 /* ── 来自 Yumo 的信 ─────────────────────────── */
 
+let letterNow = null;
+let letterClock = null;
+
+/* 信头日期永远显示「此刻」的日期；页面开着跨过午夜，日期与新信一起换 */
+function paintLetterDate() {
+  const d = new Date();
+  el.letterDate.textContent =
+    `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日${letterNow?.theme ? ' · ' + letterNow.theme : ''}`;
+}
+
 function renderLetter(l) {
-  const d = new Date(l.date || Date.now());
-  el.letterDate.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 · ${l.theme || ''}`;
+  letterNow = l;
+  paintLetterDate();
   const fig = $('#letter-fig');
   if (l.img) { $('#letter-img').src = l.img; $('#letter-img').alt = l.theme || ''; fig.hidden = false; }
   else fig.hidden = true;
@@ -1105,6 +1115,20 @@ function openLetterSheet() {
     clearTimeout(letterTimer);
     letterTimer = setTimeout(() => el.letterSheet.classList.add('is-open'), 980);
   });
+  /* 日期钟：开着时每 30 秒对一次表；跨天了就让 ensureToday 生成新的一封 */
+  if (!letterClock) {
+    letterClock = setInterval(async () => {
+      if (el.letterSheet.hidden) return;
+      const fresh = await letters.ensureToday().catch(() => null);
+      if (!fresh) return;
+      if (!letterNow || fresh.date !== letterNow.date || fresh.itemId !== letterNow.itemId) {
+        renderLetter(fresh);
+        refreshLetterDot();
+      } else {
+        paintLetterDate();
+      }
+    }, 30000);
+  }
   const existing = letters.todayLetter();
   if (existing) { renderLetter(existing); return; }
   el.letterBody.innerHTML = '<p class="letter-loading">Yumo 正在写信…</p>';

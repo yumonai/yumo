@@ -119,17 +119,18 @@ export class DeepSea {
     this.bubbles = [];
     const bc = Math.round(Math.min(34, Math.max(10, area / 62000)));
     for (let i = 0; i < bc; i++) this.bubbles.push(this.newBubble(true));
-    // 光柱
+    // 光柱：少而宽、慢而软——像很远的天光渗下来，而不是打下来
     this.shafts = [];
-    const sc = Math.max(3, Math.round(this.w / 300));
+    const sc = Math.max(2, Math.round(this.w / 420));
     for (let i = 0; i < sc; i++) {
       this.shafts.push({
         x: rand(-0.15, 1.15) * this.w,
-        w: rand(0.05, 0.20) * this.w,
-        tilt: rand(-0.22, 0.22),
-        alpha: rand(0.020, 0.056),
+        w: rand(0.10, 0.30) * this.w,
+        tilt: rand(-0.30, 0.30),
+        alpha: rand(0.014, 0.042),
         phase: rand(0, TAU),
-        speed: rand(0.05, 0.14),
+        speed: rand(0.020, 0.055),
+        drift: rand(-2.2, 2.2),
       });
     }
   }
@@ -166,29 +167,33 @@ export class DeepSea {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
-    // ② 光柱：用多层嵌套四边形堆出柔边，避免出现生硬的直线切口
+    // ② 光柱：柔和化——亮度峰值藏在屏内、双向渐隐、宽度随呼吸微胀、边缘用更多层羽化
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    const LAYERS = 6;
+    const LAYERS = 9;
     for (const s of this.shafts) {
-      const sway = Math.sin(this.t * s.speed + s.phase) * 26;
-      const a = s.alpha * (0.62 + 0.38 * Math.sin(this.t * s.speed * 2.1 + s.phase)) * (0.55 + this.energy * 0.7);
+      const sway = Math.sin(this.t * s.speed * 0.6 + s.phase) * 34 + this.t * s.drift * 0.4;
+      const breathe = 0.92 + 0.08 * Math.sin(this.t * s.speed * 0.5 + s.phase * 1.7);
+      const a = s.alpha * (0.55 + 0.45 * Math.sin(this.t * s.speed * 1.1 + s.phase)) * (0.55 + this.energy * 0.7);
       const x0 = s.x + sway;
-      const grad = ctx.createLinearGradient(x0, -60, x0 + s.tilt * h, h * 0.94);
-      grad.addColorStop(0, `rgba(${r | 0},${gg | 0},${b | 0},${a * 2.2})`);
-      grad.addColorStop(0.34, `rgba(${r | 0},${gg | 0},${b | 0},${a})`);
+      const grad = ctx.createLinearGradient(x0, -140, x0 + s.tilt * h, h * 1.02);
+      /* 峰值沉到屏内 12% 处，向上向下都化开——不再有"从边上切进来"的生硬 */
+      grad.addColorStop(0, `rgba(${r | 0},${gg | 0},${b | 0},0)`);
+      grad.addColorStop(0.10, `rgba(${r | 0},${gg | 0},${b | 0},${(a * 0.55).toFixed(3)})`);
+      grad.addColorStop(0.24, `rgba(${r | 0},${gg | 0},${b | 0},${(a * 1.35).toFixed(3)})`);
+      grad.addColorStop(0.58, `rgba(${r | 0},${gg | 0},${b | 0},${(a * 0.5).toFixed(3)})`);
       grad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.globalAlpha = 0.34;
       for (let j = 0; j < LAYERS; j++) {
-        // 从外到内逐层收窄：中心叠加最亮，边缘只剩一层，形成线性羽化
-        const k = 1 - (j / LAYERS) * 0.78;
-        const tw = s.w * k;
+        /* 中心层叠加渐进（幂次缓出），越往中心亮度增长越缓 → 柔软的带状辉光 */
+        const k = 1 - Math.pow(j / LAYERS, 1.6) * 0.86;
+        const tw = s.w * k * breathe;
         ctx.beginPath();
-        ctx.moveTo(x0 - tw / 2, -60);
-        ctx.lineTo(x0 + tw / 2, -60);
-        ctx.lineTo(x0 + tw / 2 + s.tilt * h + tw * 0.9, h * 0.94);
-        ctx.lineTo(x0 - tw / 2 + s.tilt * h - tw * 0.9, h * 0.94);
+        ctx.moveTo(x0 - tw / 2, -140);
+        ctx.lineTo(x0 + tw / 2, -140);
+        ctx.lineTo(x0 + tw / 2 + s.tilt * h + tw * 1.1, h * 1.02);
+        ctx.lineTo(x0 - tw / 2 + s.tilt * h - tw * 1.1, h * 1.02);
         ctx.closePath();
         ctx.fill();
       }

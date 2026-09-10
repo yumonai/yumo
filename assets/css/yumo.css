@@ -1381,7 +1381,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 /* ── Yumo 形象 · 气泡水母 ───────────────────── */
 .threshold__sigil{position:relative}
 .threshold__jelly{
-  position:absolute;left:50%;top:44.2%;width:41%;
+  position:absolute;left:50%;top:44.17%;width:41%;
   transform:translate(-50%,-50%);
   filter:drop-shadow(0 3px 18px rgba(240,250,255,.34));
   animation:jelly-drift 7s var(--ease-soft) infinite;
@@ -1395,8 +1395,8 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   pointer-events:none;
 }
 @keyframes jelly-drift{
-  0%,100%{transform:translate(-50%,-53%)}
-  50%{transform:translate(-50%,-46%)}
+  0%,100%{transform:translate(-50%,-50.9%)}
+  50%{transform:translate(-50%,-49.1%)}
 }
 
 /* ── 进入之前的账户门 ───────────────────────── */

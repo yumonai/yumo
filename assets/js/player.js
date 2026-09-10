@@ -130,7 +130,6 @@ export function mountPlayer(container) {
         </div>
 
         <p class="music-more">更多乐曲，敬请期待</p>
-        <p class="music-credit">录音均来自公有领域或自由许可来源，署名见各曲。</p>
       </div>`;
 
     box.querySelectorAll('.music-row').forEach((row) => {
