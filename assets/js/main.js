@@ -42,16 +42,16 @@ const el = {
   timerLabel: $('#timer-label'),
 };
 
-/* ── 上线时自带的公用钥匙：只在访客还没填过密钥时替他连上 ── */
+/* ── 上线时自带的通道：只在访客还没自己连过时接上。
+      钥匙留在 config.js 里，不写进访客的浏览器。 ── */
 function applyDeployDefaults() {
-  if (!hasDeployKey() || !DEPLOY.autoConnect) return false;
+  if (!DEPLOY.autoConnect || !hasDeployKey()) return false;
   const s = store.get('settings');
-  if (s.apiKey) return false;
-  store.set('settings', {
-    apiKey: DEPLOY.apiKey.trim(),
-    baseUrl: DEPLOY.baseUrl || s.baseUrl,
-    model: DEPLOY.model || s.model,
-  });
+  if (s.apiKey) return false;   // 他自己填过，就不动
+  const first = (DEPLOY.PROVIDERS || [])
+    .find((p) => String(p.apiKey || '').trim().length > 8 && String(p.model || '').trim());
+  if (!first) return false;
+  store.set('settings', { baseUrl: first.baseUrl, model: first.model });
   return true;
 }
 

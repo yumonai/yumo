@@ -7,6 +7,7 @@
    ══════════════════════════════════════════════ */
 
 import { store } from './store.js';
+import { DEPLOY } from './config.js';
 
 /* ── 1. 人设 ─────────────────────────────────── */
 
@@ -109,18 +110,50 @@ export class AIError extends Error {
   }
 }
 
-function cfg() {
+/**
+ * 配好钥匙的通道，顺序即优先级。
+ * 站点自带的那几条在前，访客自己填的那把排在最后兜底。
+ * 同一条（地址 + 钥匙）只算一次，避免重复。
+ */
+export function channels() {
   const s = store.get('settings');
-  return {
-    key: (s.apiKey || '').trim(),
-    base: (s.baseUrl || 'https://api.deepseek.com').replace(/\/+$/, ''),
-    model: (s.model || 'deepseek-flash').trim(),
-    temp: typeof s.temperature === 'number' ? s.temperature : 1.0,
+  const seen = new Set();
+  const out = [];
+
+  const add = (base, key, model, vision, visionModel, label) => {
+    const b = String(base || '').trim();
+    const k = String(key || '').trim();
+    const m = String(model || '').trim();
+    if (!b || !m || k.length < 8) return;
+    const id = `${b}|${k}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    out.push({
+      base: b.replace(/\/+$/, ''),
+      key: k,
+      model: m,
+      vision: vision !== false,
+      visionModel: String(visionModel || '').trim(),
+      label,
+    });
   };
+
+  for (const p of DEPLOY.PROVIDERS || []) {
+    add(p.baseUrl, p.apiKey, p.model, p.vision, p.visionModel, p.name || 'deploy');
+  }
+  add(s.baseUrl, s.apiKey, s.model, true, '', 'self');
+
+  return out;
 }
 
 export function isConnected() {
-  return !!cfg().key;
+  return channels().length > 0;
+}
+
+/** 访客在设置里调的温度 */
+function tempOf() {
+  const t = store.get('settings').temperature;
+  return typeof t === 'number' ? t : 1.0;
 }
 
 function friendlyError(status, body) {
@@ -135,23 +168,56 @@ function friendlyError(status, body) {
 }
 
 /**
- * 流式对话
+ * 流式对话：按优先级逐条通道尝试，前一条不通就悄悄换下一条。
+ * 一旦已经开口说了话，就不再换了——不能让访客听到两个人说话。
  * @returns {Promise<string>} 完整回复
  */
 export async function stream(messages, { onDelta, signal, temperature } = {}) {
-  const c = cfg();
-  if (!c.key) throw new AIError('还没有连上。先到「器皿」里填入密钥。', 'auth', 0);
+  const list = channels();
+  if (!list.length) throw new AIError('我这边还没接上。过一会儿再来找我。', 'auth', 0);
 
-  const post = (msgs) => fetch(`${c.base}/chat/completions`, {
+  let last = null;
+  for (const ch of list) {
+    let said = false;
+    try {
+      return await streamVia(ch, messages, {
+        signal,
+        temperature: temperature ?? tempOf(),
+        onDelta: (piece, full) => { said = true; onDelta?.(piece, full); },
+      });
+    } catch (e) {
+      if (e?.name === 'AbortError') throw e;   // 访客自己按了停
+      if (said) throw e;                        // 已经开口了，不能中途换人
+      last = e;
+      console.warn(`[yumo] 通道「${ch.label}」没通，换下一条：`, e?.message || e);
+    }
+  }
+  throw last || new AIError('我这边断了线。晚一点再来找我。', 'auth', 0);
+}
+
+/** 只走单独一条通道 */
+async function streamVia(ch, messages, { onDelta, signal, temperature } = {}) {
+  /* 带了图的这条通道看不看得见：能看就换成视觉模型，不能看就把图卸掉 */
+  let msgs = messages;
+  let model = ch.model;
+  if (hasImageBlock(messages)) {
+    if (ch.vision) {
+      if (ch.visionModel) model = ch.visionModel;
+    } else {
+      msgs = stripImages(messages);
+    }
+  }
+
+  const post = (m) => fetch(`${ch.base}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${c.key}`,
+      Authorization: `Bearer ${ch.key}`,
     },
     body: JSON.stringify({
-      model: c.model,
-      messages: msgs,
-      temperature: temperature ?? c.temp,
+      model,
+      messages: m,
+      temperature,
       stream: true,
       max_tokens: 1200,
     }),
@@ -160,15 +226,15 @@ export async function stream(messages, { onDelta, signal, temperature } = {}) {
 
   let res;
   try {
-    res = await post(messages);
+    res = await post(msgs);
   } catch (e) {
     if (e.name === 'AbortError') throw e;
-    throw new AIError('连不上。检查网络，或者这个地址被挡住了。', 'network', 0);
+    throw new AIError('连不上。', 'network', 0);
   }
 
-  // 如果这个模型其实看不了图，就卸下图再试一次，别让用户卡在 400 上
-  if (res.status === 400 && hasImageBlock(messages)) {
-    const plain = stripImages(messages);
+  // 如果这个模型其实看不了图，就卸下图再试一次，别让访客卡在 400 上
+  if (res.status === 400 && hasImageBlock(msgs)) {
+    const plain = stripImages(msgs);
     try {
       const retry = await post(plain);
       if (retry.ok) {
@@ -180,7 +246,7 @@ export async function stream(messages, { onDelta, signal, temperature } = {}) {
     } catch (e) {
       if (e instanceof AIError) throw e;
       if (e.name === 'AbortError') throw e;
-      throw new AIError('连不上。检查网络，或者这个地址被挡住了。', 'network', 0);
+      throw new AIError('连不上。', 'network', 0);
     }
   }
 
@@ -217,27 +283,33 @@ export async function stream(messages, { onDelta, signal, temperature } = {}) {
 
 /** 非流式，用于内部提炼 */
 async function complete(messages, { temperature = 0.4, json = false } = {}) {
-  const c = cfg();
-  if (!c.key) return null;
-  let res;
-  try {
-    res = await fetch(`${c.base}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${c.key}` },
-      body: JSON.stringify({
-        model: c.model,
-        messages,
-        temperature,
-        max_tokens: 600,
-        stream: false,
-        ...(json ? { response_format: { type: 'json_object' } } : {}),
-      }),
-    });
-  } catch { return null; }
+  /* 提炼、写潮汐记这类内部调用不附图，所以逐条通道试过去就行 */
+  const list = channels();
+  if (!list.length) return null;
 
-  if (!res.ok) return null;
-  const data = await res.json().catch(() => null);
-  return data?.choices?.[0]?.message?.content || null;
+  for (const ch of list) {
+    let res;
+    try {
+      res = await fetch(`${ch.base}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ch.key}` },
+        body: JSON.stringify({
+          model: ch.model,
+          messages,
+          temperature,
+          max_tokens: 600,
+          stream: false,
+          ...(json ? { response_format: { type: 'json_object' } } : {}),
+        }),
+      });
+    } catch { continue; }
+
+    if (!res.ok) continue;   // 有的通道不认 response_format，换下一条
+    const data = await res.json().catch(() => null);
+    const text = data?.choices?.[0]?.message?.content || null;
+    if (text) return text;
+  }
+  return null;
 }
 
 /* ── 3.5 图片：判断与降级 ─────────────────────── */
