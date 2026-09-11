@@ -15,7 +15,7 @@
 <meta property="og:title" content="Yumo · 深海陪伴者 — Your Deep Companion" />
 <meta property="og:description" content="你未说出口的，海水都记得 · What you never said, the sea remembers." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23EAF7FF'/%3E%3Cstop offset='0.45' stop-color='%238ECAE6'/%3E%3Cstop offset='1' stop-color='%230A1320'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%2303060B'/%3E%3Ccircle cx='16' cy='16' r='9' fill='url(%23g)'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="assets/css/yumo.css?v=34" />
+<link rel="stylesheet" href="assets/css/yumo.css?v=44" />
 </head>
 <body>
 
@@ -206,16 +206,19 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3v6M12 15v6M5.6 5.6l4.2 4.2M14.2 14.2l4.2 4.2M18.4 5.6l-4.2 4.2M9.8 14.2l-4.2 4.2"/></svg>
       <span>深潜</span>
     </button>
+
+    <!-- 洞悉条：Yumo 开口之前，那一层「看见」从顶栏下方滑出来。
+         放在 header 内是为了让 top:100% 精确贴住顶栏底边——
+         顶栏高度会随安全区 / 独立 PWA 避让变化，写死数值早晚会错位。 -->
+    <div class="insight" id="insight-bubble" hidden role="status" aria-live="polite">
+      <span class="insight__mark" aria-hidden="true"></span>
+      <p class="insight__text" id="insight-text"></p>
+    </div>
   </header>
 
   <div class="thread" id="thread" role="log" aria-live="polite"></div>
 
   <div class="composer-wrap">
-    <!-- 洞悉弹窗：Yumo 开口之前，先把看见的那一层浮上来 -->
-    <div class="insight" id="insight-bubble" hidden role="status" aria-live="polite">
-      <span class="insight__mark" aria-hidden="true"></span>
-      <p class="insight__text" id="insight-text"></p>
-    </div>
     <div class="attachment-strip" id="attachment-strip" hidden></div>
     <div class="rec-bar" id="rec-bar" hidden>
       <div class="rec-bar__wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -388,6 +391,6 @@
   </div>
 </div>
 
-<script type="module" src="assets/js/main.js?v=42"></script>
+<script type="module" src="assets/js/main.js?v=44"></script>
 </body>
 </html>

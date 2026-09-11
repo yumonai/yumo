@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js';
-import { DeepSea } from './scene.js';
-import { Soundscape, ICONS } from './ambient.js';
-import { Listener } from './voice.js';
-import { renderGarden } from './garden.js';
-import { renderMirror } from './mirror.js';
-import { DEPLOY, hasDeployKey } from './config.js';
-import * as ai from './ai.js';
-import * as account from './account.js';
-import * as letters from './letters.js';
-import * as player from './player.js';
+import { store, uid, clamp } from './store.js?v=44';
+import { DeepSea } from './scene.js?v=44';
+import { Soundscape, ICONS } from './ambient.js?v=44';
+import { Listener } from './voice.js?v=44';
+import { renderGarden } from './garden.js?v=44';
+import { renderMirror } from './mirror.js?v=44';
+import { DEPLOY, hasDeployKey } from './config.js?v=44';
+import * as ai from './ai.js?v=44';
+import * as account from './account.js?v=44';
+import * as letters from './letters.js?v=44';
+import * as player from './player.js?v=44';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -27,7 +27,7 @@ try {
 } catch { /* 检测不了就算了，媒体查询还在 */ }
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.33';
+const YUMO_VERSION = 'v0.35';
 
 const el = {
   scene: $('#scene'),

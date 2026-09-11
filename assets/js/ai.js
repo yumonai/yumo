@@ -6,8 +6,8 @@
        下一次见面时，它已经记得你了。
    ══════════════════════════════════════════════ */
 
-import { store } from './store.js';
-import { DEPLOY } from './config.js';
+import { store } from './store.js?v=44';
+import { DEPLOY } from './config.js?v=44';
 
 /* ── 1. 人设 ─────────────────────────────────── */
 
@@ -381,30 +381,87 @@ async function complete(messages, { temperature = 0.4, json = false, maxTokens =
 }
 
 /* ── 3.4 洞悉：开口之前先说出的那一句 ─────────
-   Yumo 回话前的停顿里，先浮上来一句他「看见」的东西。
+   Yumo 回话前的停顿里，先浮上来一句他「看见」的东西——
+   要么给那层情绪一个准确的名字，要么换一个角度看他所说的事。
+   刻意不做「揭穿」：不下结论、不诊断、不把人剖开。
+   （用户反馈过早期「拆机关」的版本太直白甚至冷酷，故整版重写。）
    这是独立的一次小请求，和主回复并行跑，所以不拖慢整体；
    失败就静默放弃，绝不因此挡住正式回话。 */
 
-const INSIGHT_PROMPT = `你是 Yumo 的思忖层。刚刚有人对他说了一句话。请写出那句话的**机关**——
-它不是复述，不是共情，是看见：这句话在保护什么、回避什么、害怕什么，
-或者那个反复出现的字背后，藏着一个他自己还没承认的假设。
+const INSIGHT_PROMPT = `你是 Yumo 的思忖层。刚刚有人对他说了一段话。
+写一句「看见」，让他心里轻轻一动，觉得「原来是这样」——
+要么说出他心里还没说出口的那层情绪，
+要么换一个角度看他说的事，一个他自己没往那边想过的角度。
 
-例如他说「随便，都行」，机关也许是「『随便』是不敢再要了」；
-他说「我最近挺好的」，机关也许是「『挺好的』是提前给自己打的预防针」。
-（以上只是形状示例——内容必须从他此刻的话里现场长出来，一个字都不能照搬。）
+写法：
+把看见的东西说明白，像在心里对自己轻轻说一句，不是写诗，也不是分析。
+用一句有语气的描述说出来，而不是给他下一个定义。
+落点在他用过的词上：沿用他的话，不要另起一个概念去解释他。
+句子要一眼看懂：不要拿风景、影子、水、风这类意象，去代替真正要说的话。
+打比方偶尔用一次就够，不要每条都打比方。
+
+句式别重复：不要每条都从「」里的词开头，「」可以落在句子中间。
 
 要求：
 - 不超过 26 个字，一个短句；不要分号，不要换行，不要句末句号。
-- 从他话里选一个带钩子的词，用「」标出；除「」外不用任何引号、括号、书名号或破折号。
-- 只说机关，不复述他的话；不安慰，不提问，不评判，不指导。
+- 「」里只放一个 2~4 字的词，必须是词而不是半句话；除「」外不用任何引号、括号、书名号或破折号。
+- 口吻温和、贴人。不下结论，不诊断，不揭穿，不追问，也不安慰。
+- 不复述他的话；不指导，不评判，不贴标签。
+- 禁止判定式说法（「你就是」「其实你只是」「说明你」「根本」）。
 - 禁止空泛词（压力/情绪/迷茫/内心/成长）——每个字都要贴着他说的具体内容。
-- 不要出现「你」字——这句是你心里浮上来的，不是对他说的话。
+- 不要出现「你」字——这句是心里浮上来的，不是对他说的话。
 - 只输出这一句本身。
 
-例子（只是形状，不要照抄）：
-「要是」两个字，是在替此刻的空打掩护
-「没事」底下压着的那部分，没人接得住
-原地打转，其实是怕往前走会踩空`;
+例子（照这个语气写，内容要和他此刻说的话有关，不可搬用）：
+「没事」说得太顺了，像是练过很多遍
+说「算了」的时候，语气其实是轻的
+那句「习惯了」，听得出是学会了不指望
+说「来不及了」的时候，其实心里很想要
+「随便」不是没有想法，是想法先说给了自己听
+把「烦」听进去，里面是还在意`;
+
+/* 洞悉的质检线。小模型（实测 glm-4-flash）会周期性地滑回两种写法，
+   所以不完全指望提示词——出稿后再收一道网：
+
+   硬伤：把人「剖开」讲的揭盖式措辞。用户明确反馈过这个味道太冷，
+         命中就退回重写；两次都犯，宁可这一轮不弹。
+   软伤：「」里放了半句话而不是一个词。只是不够工整，退回重写一次，
+         仍不达标也照旧放出——内容对了比格式整齐要紧。 */
+const COLD_RE = /藏着|藏进|藏了|藏在|底下压|背后其实|其实是怕|不过是|按住了|剖开|压抑|深处|揭穿/;
+
+/** 「」里是否塞了半句话（规范要求 2~4 字的词） */
+const quoteTooLong = (s) => {
+  const q = String(s).match(/「([^」]*)」/);
+  return !!q && q[1].length > 4;
+};
+
+/** 让模型改口的追加指令（不走 assistant 预填，兼容各家接口） */
+const INSIGHT_RETRY = '上面那版读起来偏冷或不够工整。请换一种写法重写一句：'
+  + '只轻声说出那份情绪或那个新角度本身，不要指出他按住了什么；'
+  + '「」里只放一个 2~4 字的词，不要放半句话。仍只输出这一句。';
+
+/** 一次洞悉请求；拿不到就返回空串，由调用方静默跳过或换通道。 */
+async function askInsight(ch, messages) {
+  let res;
+  try {
+    res = await fetch(`${ch.base}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ch.key}` },
+      body: JSON.stringify({
+        model: ch.model,
+        messages,
+        temperature: 0.85,
+        max_tokens: 90,
+        stream: false,
+        ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
+        ...(ch.extra || {}),
+      }),
+    });
+  } catch { return ''; }
+  if (!res.ok) return '';
+  const data = await res.json().catch(() => null);
+  return cleanInsight(data?.choices?.[0]?.message?.content || '');
+}
 
 /**
  * 生成一句「洞悉」。拿不到就返回空字符串，调用方应静默跳过。
@@ -435,28 +492,22 @@ export async function insight(history) {
   ];
 
   for (const ch of list) {
-    let res;
-    try {
-      res = await fetch(`${ch.base}/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ch.key}` },
-        body: JSON.stringify({
-          model: ch.model,
-          messages,
-          temperature: 0.85,
-          max_tokens: 90,
-          stream: false,
-          ...(ch.noThink ? { thinking: { type: 'disabled' } } : {}),
-          ...(ch.extra || {}),
-        }),
-      });
-    } catch { continue; }
-    if (!res.ok) continue;
+    const first = await askInsight(ch, messages);
+    if (!first) continue;
+    const dirty = COLD_RE.test(first) || quoteTooLong(first);
+    if (!dirty) return first;
 
-    const data = await res.json().catch(() => null);
-    const raw = data?.choices?.[0]?.message?.content || '';
-    const line = cleanInsight(raw);
-    if (line) return line;
+    const second = await askInsight(ch, [
+      ...messages,
+      { role: 'user', content: `刚才写成这样：「${first}」。${INSIGHT_RETRY}` },
+    ]);
+    const clean2 = second && !COLD_RE.test(second) && !quoteTooLong(second);
+    if (clean2) return second;
+    // 重写没更干净：只要不含冷硬味道就照旧放出（软伤可容忍）
+    if (second && !COLD_RE.test(second)) return second;
+    if (!COLD_RE.test(first)) return first;
+    // 两稿都冷——放弃这一轮。弹窗是锦上添花，宁可不出现，也不冷他一下。
+    return '';
   }
   return '';
 }
