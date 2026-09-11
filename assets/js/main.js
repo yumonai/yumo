@@ -19,7 +19,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.25';
+const YUMO_VERSION = 'v0.26';
 
 const el = {
   scene: $('#scene'),
@@ -112,6 +112,7 @@ function navigate(to) {
   if (to === 'garden') { garden?.paint(); }
   if (to === 'settings') paintSettings();
   if (to === 'drift') paintDrift();
+  if (to === 'spring') greetHints();
   if (to === 'sound') paintSound();
 
   setMood(to === 'talk' ? currentMood() : currentMood());
@@ -343,7 +344,7 @@ async function send() {
   el.springState.textContent = '正在感受你说的话…';
 
   const settings = store.get('settings');
-  const history = store.recentTurns(18);
+  const history = store.recentTurns(14);
   // 取最后一句用户原话交给危机识别——由代码判定，不依赖模型自觉
   const lastUser = [...history].reverse().find((m) => m.role === 'user' && typeof m.content === 'string')?.content || '';
   const sys = ai.buildSystemPrompt({ deep: !!settings.deepMode, lastUser });
@@ -1101,6 +1102,24 @@ $('#gate-swap')?.addEventListener('click', () => {
 /* 点暗处 = 先不进了，留在门槛上 */
 $('#gate')?.addEventListener('click', (e) => { if (e.target.id === 'gate') closeGate(); });
 
+/* 点左上角的 YUMO = 刷新页面（更新版本后用它拿最新代码） */
+const brandMark = $('#brand-mark');
+brandMark?.addEventListener('click', () => location.reload());
+brandMark?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.reload(); }
+});
+
+/* 首次进首页时，给两个角落各浮一个小提示（每次会话只提示一次） */
+function greetHints() {
+  if (sessionStorage.getItem('yumo.hinted')) return;
+  sessionStorage.setItem('yumo.hinted', '1');
+  const a = $('#hint-brand'); const b = $('#hint-menu');
+  if (!a || !b) return;
+  setTimeout(() => { a.hidden = false; requestAnimationFrame(() => a.classList.add('is-in')); }, 1400);
+  setTimeout(() => { b.hidden = false; requestAnimationFrame(() => b.classList.add('is-in')); }, 2200);
+  setTimeout(() => [a, b].forEach((el) => { el.classList.remove('is-in'); setTimeout(() => { el.hidden = true; }, 700); }), 7800);
+}
+
 $('#core')?.addEventListener('click', () => navigate('talk'));
 $('#core')?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('talk'); }
@@ -1153,6 +1172,15 @@ function renderLetter(l) {
   reply.hidden = false;
   reply.classList.add('reveal-item');
   reply.style.setProperty('--i', i++);
+  /* 存信按钮：已存过的显示为已存下 */
+  const keep = $('#letter-keep');
+  keep.hidden = false;
+  keep.classList.add('reveal-item');
+  keep.style.setProperty('--i', i++);
+  const kept = !!l.kept;
+  keep.textContent = kept ? '已存下 ✓' : '在心里存下';
+  keep.classList.toggle('is-kept', kept);
+  keep.disabled = kept;
 
   /* 重触发入场（同一封信被重新渲染时也要重新浮起） */
   const paper = document.querySelector('.letter-paper');
@@ -1207,6 +1235,23 @@ function openLetterSheet() {
     });
 }
 
+/* 在心里存下：把这封信记进 Yumo 的记忆，并标记为存下 */
+function keepLetter() {
+  const l = letterNow;
+  const btn = $('#letter-keep');
+  if (!l) return;
+  const list = store.get('letters').map((x) => (x.itemId === l.itemId && x.date === l.date ? { ...x, kept: true, keptT: Date.now() } : x));
+  store.set('letters', list);
+  letterNow = { ...l, kept: true };
+  const note = `他把我写给他的那封信存进了心里${l.theme ? `——那封关于「${l.theme}」` : ''}。`;
+  if (!store.get('memories').some((m) => m.text === note)) store.pushMemory(note, 'letter');
+  btn.textContent = '已存下 ✓';
+  btn.classList.add('is-kept');
+  btn.disabled = true;
+  whisper('存进了。以后我再想起这段水，会记得你把它收好了。', 5200);
+}
+
+$('#letter-keep')?.addEventListener('click', keepLetter);
 function closeLetterSheet() {
   clearTimeout(letterTimer);
   el.letterSheet.classList.remove('is-open');

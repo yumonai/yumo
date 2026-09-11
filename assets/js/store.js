@@ -129,7 +129,7 @@ export const store = {
     const list = state.memories.concat({
       id: uid(), t: Date.now(), text: String(text).trim(), kind,
     });
-    return this.put('memories', list.slice(-400));
+    return this.put('memories', list.slice(-60));
   },
 
   pushEcho(text, from = 'yumo') {
@@ -137,7 +137,7 @@ export const store = {
     if (!clean) return;
     if (state.echoes.some((e) => e.text === clean)) return;
     const list = state.echoes.concat({ id: uid(), t: Date.now(), text: clean, from });
-    return this.put('echoes', list.slice(-300));
+    return this.put('echoes', list.slice(-40));
   },
 
   pushDrift(text, shared = false) {
@@ -170,23 +170,28 @@ export const store = {
   absorbProfile(p) {
     if (!p || typeof p !== 'object') return;
     const cur = state.profile;
-    const mergeList = (a = [], b = [], cap = 14) => {
-      const seen = new Set();
+    /* 合并画像：去重 + 去掉互相包含的冗余（"和母亲的关系" 吃掉 "母亲"）+ 只留最近 cap 个 */
+    const mergeList = (a = [], b = [], cap = 6, maxLen = 8) => {
+      const raw = [...a, ...(Array.isArray(b) ? b : [])]
+        .map((x) => String(x || '').trim())
+        .filter((x) => x && x.length <= maxLen);
       const out = [];
-      for (const x of [...a, ...(Array.isArray(b) ? b : [])]) {
-        const s = String(x || '').trim();
-        if (!s || seen.has(s)) continue;
-        seen.add(s);
-        out.push(s);
+      for (const x of raw) {
+        // 已收的里面有包含它的（更完整），就跳过
+        if (out.some((y) => y.includes(x) || x.includes(y))) continue;
+        out.push(x);
       }
-      // 新的排在前面，但保留总量
       return out.slice(-cap);
     };
+    /* 「压力」「迷茫」这类空词不配进星图——它们说了等于没说 */
+    const EMPTY_WORDS = new Set(['压力', '迷茫', '焦虑', '内耗', '情绪', '烦恼', '心事', '低落']);
+    const cleanThemes = mergeList(cur.themes, (p.themes || []).filter((t) => String(t).trim().length >= 3), 5, 8)
+      .filter((t) => !EMPTY_WORDS.has(t));
     const patch = {
-      traits: mergeList(cur.traits, p.traits, 16),
-      themes: mergeList(cur.themes, p.themes, 12),
-      figures: mergeList(cur.figures, p.figures, 10),
-      seasons: mergeList(cur.seasons, p.seasons, 8),
+      traits: mergeList(cur.traits, p.traits, 6, 6),
+      themes: cleanThemes,
+      figures: mergeList(cur.figures, p.figures, 6, 8),
+      seasons: mergeList(cur.seasons, p.seasons, 4, 8),
       lastUpdated: Date.now(),
     };
     if (p.essence && String(p.essence).trim()) patch.essence = String(p.essence).trim().slice(0, 120);

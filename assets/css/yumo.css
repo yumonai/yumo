@@ -1490,3 +1490,33 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   background:linear-gradient(180deg,rgba(4,9,16,.16),rgba(4,9,16,.5));
 }
 .drawn__art.has-img em{z-index:1;color:var(--mist-200);text-shadow:0 1px 6px rgba(0,0,0,.65)}
+
+/* ── 角落小提示（YUMO / 菜单）────────────────── */
+.hint-pop{
+  position:absolute;z-index:40;pointer-events:none;white-space:nowrap;
+  padding:6px 11px;border-radius:var(--r-pill);
+  background:linear-gradient(150deg,rgba(13,24,37,.95),rgba(9,16,26,.92));
+  border:1px solid var(--line-strong);box-shadow:var(--shadow-lift);
+  font-size:10.5px;letter-spacing:.1em;color:var(--mist-100);
+  opacity:0;transform:translateY(-6px);
+  transition:opacity .7s var(--ease-soft),transform .7s var(--ease-soft);
+}
+.hint-pop.is-in{opacity:1;transform:none}
+.hint-pop--brand{left:8px;bottom:calc(100% + 4px)}
+.hint-pop--menu{right:0;bottom:calc(100% + 6px)}
+
+/* ── 在心里存下 ─────────────────────────────── */
+.letter-keep{
+  display:block;width:100%;margin-top:10px;padding:11px;
+  border-radius:var(--r-pill);border:1px solid var(--line-strong);
+  background:rgba(210,236,250,.04);
+  color:var(--mist-100);font-size:12.5px;letter-spacing:.24em;text-indent:.24em;
+  cursor:pointer;
+  transition:border-color var(--dur-med) var(--ease-soft),color var(--dur-med) var(--ease-soft),background var(--dur-med) var(--ease-soft);
+}
+.letter-keep:hover{border-color:var(--tide-400);color:var(--tide-100);background:rgba(210,236,250,.08)}
+.letter-keep.is-kept{
+  border-color:rgba(168,216,232,.34);color:var(--tide-200);
+  background:rgba(168,216,232,.07);cursor:default;letter-spacing:.2em;
+}
+.spring__top{position:relative}

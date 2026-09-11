@@ -129,7 +129,7 @@ export class DeepSea {
         w: rand(0.18, 0.40) * this.w,
         len: rand(0.9, 1.3),
         tilt: rand(-0.26, 0.26),
-        alpha: rand(0.085, 0.17),
+        alpha: rand(0.11, 0.215),
         phase: rand(0, TAU),
         speed: rand(0.016, 0.045),
         drift: rand(-1.6, 1.6),
