@@ -374,13 +374,12 @@ async function send() {
       .catch(() => {});
 
     let streamErr = null;
+    let pumpStop = false;   // 打字机停止开关
     const streamDone = ai.stream(
       [{ role: 'system', content: sys }, ...history],
       {
         onDelta: (_d, full) => {
-          acc = full;
-          // 还在那 5 秒的安静里：先不铺开，让话再沉一会儿
-          if (revealed) { ensureBubble().textContent = full; scrollThread(); }
+          acc = full;   // 打字机泵会按自己的节奏把文字缓缓放出来
         },
       }
     ).then(() => true).catch((e) => { streamErr = e; return false; });
@@ -400,9 +399,33 @@ async function send() {
     revealed = true;
     hideInsightPopup();
 
-    await streamDone;
-    if (streamErr) throw streamErr;
+    /* 打字机：回复缓缓浮出来，而不是整段砸下来。
+       节奏自适应——整段在 2.5–6 秒内匀速展开。 */
+    let shown = 0;
+    let streamSettled = false;
+    streamDone.then(() => { streamSettled = true; }, () => { streamSettled = true; });
+    const pump = () => {
+      if (pumpStop) return;
+      const total = acc.length;
+      if (shown < total) {
+        const span = Math.min(6000, Math.max(2500, total * 26));
+        shown = Math.min(total, shown + (total / span) * 170 + 0.4);
+        ensureBubble().textContent = acc.slice(0, Math.floor(shown));
+        scrollThread();
+      }
+      if (!(streamSettled && shown >= total)) setTimeout(pump, 170);
+    };
+    pump();
 
+    await streamDone;
+    streamSettled = true;
+    if (streamErr) { pumpStop = true; throw streamErr; }
+
+    /* 等打字机把最后一段放完 */
+    await new Promise((res) => {
+      const w = () => { if (shown >= acc.length) return res(); setTimeout(w, 170); };
+      w();
+    });
     ensureBubble().textContent = acc;
     scrollThread();
     feel.remove();
@@ -444,6 +467,7 @@ async function send() {
       scrollThread();
     }
   } finally {
+    pumpStop = true;
     hideInsightPopup();
     busy = false;
     el.input.disabled = false;

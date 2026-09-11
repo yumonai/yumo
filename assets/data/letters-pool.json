@@ -160,7 +160,8 @@
       "text": "当你在深夜反复想一件事时——那个能看见这些念头正在转的，是谁？念头是流水，而你是那个站在岸边看水的人。能观察到念头的那个存在，不在念头里。",
       "author": "艾克哈特·托尔",
       "source": "据《当下的力量》(1997) 第一章的思想转述（作者在世，不引原文）",
-      "note": "和 Kross 2014 的自我对话研究在同一个地方会合。"
+      "note": "和 Kross 2014 的自我对话研究在同一个地方会合。",
+      "img": "assets/img/letters/tolle-not-mind.jpg"
     },
     {
       "id": "tolle-pain-body",
@@ -169,7 +170,8 @@
       "text": "托尔把它叫做痛苦之身：旧伤攒下来的一个情绪体。平时睡着，一旦遇到熟悉的情境——一句语气、一个眼神——就会醒过来，把今天的人当成昨天的人对待。认出它，是让它失去力量的第一步；因为你能看着它，而不是变成它。",
       "author": "艾克哈特·托尔",
       "source": "据《当下的力量》(1997) 第二章的思想转述（作者在世，不引原文）",
-      "note": "给「我为什么老是为同一件事炸毛」一个名字。"
+      "note": "给「我为什么老是为同一件事炸毛」一个名字。",
+      "img": "assets/img/letters/tolle-pain-body.jpg"
     },
     {
       "id": "tolle-presence",
@@ -178,7 +180,8 @@
       "text": "人大部分的痛苦都不在此刻——是对过去的悔恨、对未来的焦虑。而此刻的身体、呼吸、脚踩着的地面，是焦虑够不着的地方。把注意力放回身体，就是把自己从时间里捞回来。",
       "author": "艾克哈特·托尔",
       "source": "据《当下的力量》(1997) 的思想转述（作者在世，不引原文）",
-      "note": "可以做成具体动作，不是道理。"
+      "note": "可以做成具体动作，不是道理。",
+      "img": "assets/img/letters/tolle-presence.jpg"
     },
     {
       "id": "camus-sisyphus",
@@ -247,7 +250,8 @@
       "text": "少年听雨歌楼上，红烛昏罗帐。壮年听雨客舟中，江阔云低、断雁叫西风。而今听雨僧庐下，鬓已星星也。悲欢离合总无情，一任阶前、点滴到天明。",
       "author": "蒋捷",
       "source": "《虞美人·听雨》（南宋，公版）",
-      "note": "三段人生，同一场雨。"
+      "note": "三段人生，同一场雨。",
+      "img": "assets/img/letters/jiangjie-rain.jpg"
     },
     {
       "id": "sushi-chibifu",
@@ -287,7 +291,8 @@
       "author": "Lazar 等",
       "source": "NeuroReport 16(17):1893–1897 (2005)",
       "doi": "10.1097/01.wnr.0000186598.66243.19",
-      "note": "你每天做的小事，正在物理上改变你。"
+      "note": "你每天做的小事，正在物理上改变你。",
+      "img": "assets/img/letters/lazar-2005.jpg"
     },
     {
       "id": "holzel-2011",
@@ -298,7 +303,8 @@
       "source": "Psychiatry Research: Neuroimaging 191(1):36–43 (2011) · PMID 21071182",
       "doi": "10.1016/j.pscychresns.2010.08.006",
       "pmid": "21071182",
-      "note": "不是修行一辈子，是两个月。"
+      "note": "不是修行一辈子，是两个月。",
+      "img": "assets/img/letters/holzel-2011.jpg"
     },
     {
       "id": "kross-2014",
@@ -309,7 +315,8 @@
       "source": "Journal of Personality and Social Psychology 106(2):304–324 (2014) · PMID 24467424",
       "doi": "10.1037/a0035173",
       "pmid": "24467424",
-      "note": "可以直接教用户的技巧。"
+      "note": "可以直接教用户的技巧。",
+      "img": "assets/img/letters/kross-2014.jpg"
     },
     {
       "id": "lieberman-2007",
@@ -319,7 +326,8 @@
       "author": "Lieberman 等",
       "source": "Psychological Science 18(5):421–428 (2007)",
       "doi": "10.1111/j.1467-9280.2007.01916.x",
-      "note": "Yumo 整个存在方式的科学注脚。建议作为上线第一封。"
+      "note": "Yumo 整个存在方式的科学注脚。建议作为上线第一封。",
+      "img": "assets/img/letters/lieberman-2007.jpg"
     },
     {
       "id": "pennebaker-1997",
@@ -329,7 +337,8 @@
       "author": "Pennebaker",
       "source": "Psychological Science 8(3):162–166 (1997)",
       "doi": "10.1111/j.1467-9280.1997.tb00403.x",
-      "note": "写给那些「不想打扰别人」的人。"
+      "note": "写给那些「不想打扰别人」的人。",
+      "img": "assets/img/letters/pennebaker-1997.jpg"
     },
     {
       "id": "holzel-2010",
@@ -339,7 +348,8 @@
       "author": "Hölzel 等",
       "source": "Social Cognitive and Affective Neuroscience 5(1):11–17 (2010)",
       "doi": "10.1093/scan/nsp034",
-      "note": "和海马体变厚那条配对：一个变厚，一个变小。"
+      "note": "和海马体变厚那条配对：一个变厚，一个变小。",
+      "img": "assets/img/letters/holzel-2010.jpg"
     },
     {
       "id": "grossmann-2014",
@@ -349,7 +359,8 @@
       "author": "Grossmann & Kross",
       "source": "Psychological Science 25(8):1571–1580 (2014)",
       "doi": "10.1177/0956797614535400",
-      "note": "解释「道理我都懂，轮到自己就不行」——是人类共有的认知盲区。"
+      "note": "解释「道理我都懂，轮到自己就不行」——是人类共有的认知盲区。",
+      "img": "assets/img/letters/grossmann-2014.jpg"
     },
     {
       "id": "farb-2007",
@@ -359,7 +370,8 @@
       "author": "Farb 等",
       "source": "Social Cognitive and Affective Neuroscience 2(4):313–322 (2007)",
       "doi": "10.1093/scan/nsm030",
-      "note": "你不是在解决问题，是在给自己讲故事。"
+      "note": "你不是在解决问题，是在给自己讲故事。",
+      "img": "assets/img/letters/farb-2007.jpg"
     },
     {
       "id": "wood-2009",
@@ -370,7 +382,8 @@
       "source": "Psychological Science 20(7):860–866 (2009) · PMID 19493324",
       "doi": "10.1111/j.1467-9280.2009.02370.x",
       "pmid": "19493324",
-      "note": "Yumo 反对空安慰的科学依据。"
+      "note": "Yumo 反对空安慰的科学依据。",
+      "img": "assets/img/letters/wood-2009.jpg"
     },
     {
       "id": "tang-2007",
@@ -381,7 +394,8 @@
       "source": "PNAS 104(43):17152–17156 (2007) · PMID 17940025",
       "doi": "10.1073/pnas.0707678104",
       "pmid": "17940025",
-      "note": "门槛低到没有人可以说我做不到。"
+      "note": "门槛低到没有人可以说我做不到。",
+      "img": "assets/img/letters/tang-2007.jpg"
     },
     {
       "id": "zeidan-2010",
@@ -391,7 +405,8 @@
       "author": "Zeidan 等",
       "source": "Consciousness and Cognition 19(2):597–605 (2010)",
       "doi": "10.1016/j.concog.2010.03.014",
-      "note": "改变不需要几年。"
+      "note": "改变不需要几年。",
+      "img": "assets/img/letters/zeidan-2010.jpg"
     },
     {
       "id": "barrett-2001",
@@ -401,7 +416,8 @@
       "author": "Barrett 等",
       "source": "Cognition & Emotion 15(6):713–724 (2001)",
       "doi": "10.1080/02699930143000239",
-      "note": "和情绪标注那条互补：一个讲脑区，一个讲说得细。"
+      "note": "和情绪标注那条互补：一个讲脑区，一个讲说得细。",
+      "img": "assets/img/letters/barrett-2001.jpg"
     },
     {
       "id": "davidson-2003",
@@ -412,7 +428,8 @@
       "source": "Psychosomatic Medicine 65(4):564–570 (2003) · PMID 12883106",
       "doi": "10.1097/01.PSY.0000077505.67574.E3",
       "pmid": "12883106",
-      "note": "情绪不只是心情。"
+      "note": "情绪不只是心情。",
+      "img": "assets/img/letters/davidson-2003.jpg"
     },
     {
       "id": "vago-2012",
@@ -422,7 +439,8 @@
       "author": "Vago & Silbersweig",
       "source": "Frontiers in Human Neuroscience 6:296 (2012)",
       "doi": "10.3389/fnhum.2012.00296",
-      "note": "给科学部分一个收口。"
+      "note": "给科学部分一个收口。",
+      "img": "assets/img/letters/vago-2012.jpg"
     },
     {
       "id": "beethoven-heiligenstadt",
@@ -501,7 +519,8 @@
       "text": "《肖申克的救赎》（1994）：一个人被冤枉关了十九年。挖通道的那把小石锤藏在圣经里。他爬过五百码的下水道，在雨里张开手。自由不是墙外的东西，是你决定不让墙进到心里。",
       "author": "电影《肖申克的救赎》",
       "source": "导演 Frank Darabont，1994",
-      "note": "只谈主题，不引台词。适合讲被困住。"
+      "note": "只谈主题，不引台词。适合讲被困住。",
+      "img": "assets/img/letters/film-shawshank.jpg"
     },
     {
       "id": "film-okuribito",
@@ -510,7 +529,8 @@
       "text": "《入殓师》（2008）：一个失业的大提琴手回老家找了份工作——给死者化妆、穿衣、送行。他一开始觉得羞耻，后来看着一场场告别，慢慢理解了这份工作的重量。严肃地对待一件别人看不起的事，本身就是一种温柔。",
       "author": "电影《入殓师》",
       "source": "导演泷田洋二郎，2008",
-      "note": "适合讲职业羞耻、丧亲。"
+      "note": "适合讲职业羞耻、丧亲。",
+      "img": "assets/img/letters/film-okuribito.jpg"
     },
     {
       "id": "film-manchester",
@@ -519,7 +539,8 @@
       "text": "《海边的曼彻斯特》（2016）：一个人犯了一个无法原谅自己的错，他没有被原谅，也没有走出来。电影最后他对哥哥的朋友说：我走不出来。有些悲伤不会过去，人可以带着它继续活。这是全片最诚实的地方。",
       "author": "电影《海边的曼彻斯特》",
       "source": "导演 Kenneth Lonergan，2016",
-      "note": "适合讲我一直好不起来——Yumo 不会逼你好起来。"
+      "note": "适合讲我一直好不起来——Yumo 不会逼你好起来。",
+      "img": "assets/img/letters/film-manchester.jpg"
     },
     {
       "id": "film-soul",
@@ -528,7 +549,8 @@
       "text": "《心灵奇旅》（2020）：一个爵士乐手终于登上梦寐以求的舞台，演完却觉得「就这样？」然后他发现，真正让人想活的，是一片落叶落在他手上的那个下午。活着不是为了等一个目标达成，是那些没被注意到的分钟。",
       "author": "电影《心灵奇旅》",
       "source": "导演 Pete Docter，2020",
-      "note": "适合讲空虚、无意义感。"
+      "note": "适合讲空虚、无意义感。",
+      "img": "assets/img/letters/film-soul.jpg"
     },
     {
       "id": "film-coco",
@@ -537,7 +559,8 @@
       "text": "《寻梦环游记》（2017）：亡灵世界里，人只有被活着的人记得才不会消失。告别不是关系的结束，遗忘才是。",
       "author": "电影《寻梦环游记》",
       "source": "导演 Lee Unkrich，2017",
-      "note": "适合丧亲、讲不知道该不该忘了 TA。"
+      "note": "适合丧亲、讲不知道该不该忘了 TA。",
+      "img": "assets/img/letters/film-coco.jpg"
     },
     {
       "id": "film-yiyi",
@@ -546,7 +569,8 @@
       "text": "《一一》（2000）：杨德昌的这部电影里，人人都在过自己的日子，谁也说不清别人的事。片中说，我们是不是只能知道一半的事情。每个人都只看得见一半的人生，所以不必急着评判自己。",
       "author": "电影《一一》",
       "source": "导演杨德昌，2000",
-      "note": "适合讲我搞砸了。"
+      "note": "适合讲我搞砸了。",
+      "img": "assets/img/letters/film-yiyi.jpg"
     },
     {
       "id": "film-eeaao",
@@ -555,7 +579,8 @@
       "text": "《瞬息全宇宙》（2022）：一个开洗衣店的妈妈在无数个平行宇宙里都是失败者，最后她选择的是——认真听女儿说一句话，好好处理一张税单。既然一切都不重要，那就好好对待眼前这一件。",
       "author": "电影《瞬息全宇宙》",
       "source": "导演 Daniels，2022",
-      "note": "适合讲虚无感、有什么意义。"
+      "note": "适合讲虚无感、有什么意义。",
+      "img": "assets/img/letters/film-eeaao.jpg"
     }
   ]
 }
