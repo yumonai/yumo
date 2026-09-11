@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js?v=52';
-import { DeepSea } from './scene.js?v=52';
-import { Soundscape, ICONS } from './ambient.js?v=52';
-import { Listener } from './voice.js?v=52';
-import { renderGarden } from './garden.js?v=52';
-import { renderMirror } from './mirror.js?v=52';
-import { DEPLOY, hasDeployKey } from './config.js?v=52';
-import * as ai from './ai.js?v=52';
-import * as account from './account.js?v=52';
-import * as letters from './letters.js?v=52';
-import * as player from './player.js?v=52';
+import { store, uid, clamp } from './store.js?v=53';
+import { DeepSea } from './scene.js?v=53';
+import { Soundscape, ICONS } from './ambient.js?v=53';
+import { Listener } from './voice.js?v=53';
+import { renderGarden } from './garden.js?v=53';
+import { renderMirror } from './mirror.js?v=53';
+import { DEPLOY, hasDeployKey } from './config.js?v=53';
+import * as ai from './ai.js?v=53';
+import * as account from './account.js?v=53';
+import * as letters from './letters.js?v=53';
+import * as player from './player.js?v=53';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -27,7 +27,7 @@ try {
 } catch { /* 检测不了就算了，媒体查询还在 */ }
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.43';
+const YUMO_VERSION = 'v0.45';
 
 const el = {
   scene: $('#scene'),
@@ -438,9 +438,14 @@ async function send() {
        此处打字机还没启动，访客看不到任何文字，改写不会造成跳字。 */
     if (!ai.isCrisis(String(text || ''))) {
       await Promise.race([streamDone, sleep(DESTOCK_WAIT_MS)]);
-      if (acc && ai.needsDestock(acc)) {
-        const better = await ai.rewrite(sys, history, acc).catch(() => '');
-        if (better && !ai.needsDestock(better)) acc = better;
+      if (acc && (ai.needsDestock(acc) || ai.isReciting(acc))) {
+        /* 防念稿：模型偶尔会把人设原文整段念出来（实测一次）。
+           此时重写指令要额外说明「只对他说自然的话」，否则重写后还是稿。 */
+        const recite = ai.isReciting(acc);
+        const better = await ai.rewrite(sys, history, acc,
+          recite ? '不要复述你的设定、你的记忆清单，也不要用「他」称呼对面的人；只对他说一句自然的话' : ''
+        ).catch(() => '');
+        if (better && !ai.needsDestock(better) && !ai.isReciting(better)) acc = better;
       }
     }
 
