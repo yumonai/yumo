@@ -20,27 +20,44 @@ export const DEPLOY = {
      按顺序尝试：前一条不通（钥匙过期 / 额度用光 / 限流 /
      网络不通），就自动换下一条，访客察觉不到。
 
-     当前是两跳：智谱 GLM（主力）→ 硅基流动（第二跳，已充值可用）。
+     当前顺序：智谱 glm-4.7-flash（质量最好，但免费池拥堵）
+             → 智谱 glm-4-flash-250414（同一家、更稳，拥堵时兜住）
+             → 硅基流动 → 讯飞星火。
      哪一条的 apiKey 是空的，就跳过哪一条。
      想让某个模型当主力，把它排到前面就行。
 
      model 为空或 apiKey 为空的通道会被忽略，所以
      没配好的那几条放着不动也不会出问题。         */
   PROVIDERS: [
-    /* 智谱 GLM —— 当前主力。官方文档明确标注免费，中文最好，免绑卡。
-       ⚠️ 模型名是实测挑出来的，别随手改：
-         · glm-4-flash-250414  不思考 → 1~3 秒，6/6 稳。**用的就是它**
-         · glm-4.7-flash       是思考模型：会把 token 全烧在推理上、
-                               正文返回空（finish_reason: length），
-                               实测连打 6 次全被 1305「访问量过大」挡回
-         · glm-4.6v-flash      免费视觉模型（免费档较拥堵，不通会自动跳过） */
+    /* 智谱 GLM-4.7-Flash —— 免费档里最好的一档，排在第一位。
+       官方依据（2026-09-12 核对）：
+         · 官方定价页 GLM-4.7-Flash 一行：输入免费 / 输出免费 / 缓存免费
+         · 官方 FAQ：「免费模型(GLM-4.7-Flash、GLM-4.6V-Flash)的缓存也全部免费」
+         · 官方发布稿：替代 GLM-4.5-Flash 上线，供免费调用，并专门推荐
+           用于「中文写作、长文本、情感/角色扮演」——正是本产品的场景
+       ⚠️ 但它和一个拥堵的免费池共用：实测连打 10 次有 7 次被
+          429 / 1305「访问量过大」挡回。所以它只能排第一、不能独占——
+          被挡时 stream() 会静默落到下面那条 glm-4-flash-250414（更稳）。
+       2026-09-12 实测：关掉 thinking 后正文正常（旧注释里「返回空」的说法已过时），
+          单次 0.7~1.5 秒；同一人设跑 16 条真实对话，客服腔 0 命中
+          （glm-4-flash-250414 是 2 命中），「求指引」那轮给出了真正的视角。 */
+    {
+      name: 'glm47',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      model: 'glm-4.7-flash',           // 200K 上下文；文本模态，看不见图
+      apiKey: 'fd099e2484994651b61248755f20c14a.AM12qfemxfgCKDwQ',
+      noThink: true,                    // 思考模式会吃掉 token，必须显式关掉
+      maxTokens: 1024,
+    },
+
+    /* 智谱 glm-4-flash-250414 —— 第二跳，同一家但更稳（实测从不被 1305 挡）。
+       上面那条被限流时，这一条兜住，访客察觉不到。
+         · glm-4v-flash  带图时换这个（真图实测 HTTP 200，可用） */
     {
       name: 'glm',
       baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
       model: 'glm-4-flash-250414',      // 128K 上下文
-      visionModel: 'glm-4v-flash',      // 带了图自动换这个（实测 0.6 秒）
       apiKey: 'fd099e2484994651b61248755f20c14a.AM12qfemxfgCKDwQ',
-      vision: true,
       noThink: true,                    // 思考型模型会返回空正文，必须显式关掉
       maxTokens: 1024,                  // ⚠️ 智谱视觉模型只收 1~1024，超出直接 1210 报错
     },
@@ -52,7 +69,6 @@ export const DEPLOY = {
       baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
       model: '',                        // ← 填接入点 ID
       apiKey: '',                       // ← 填这里
-      vision: true,
     },
 
     /* 硅基流动 —— 第二跳，另一家供应商，智谱排队或限流时它能顶上
@@ -77,7 +93,6 @@ export const DEPLOY = {
       baseUrl: 'https://api.siliconflow.cn/v1',
       model: 'THUDM/GLM-4-9B-0414',
       apiKey: 'sk-kxrzpfwazsndxewucvrpmkecmgywpzzzhsbrenttqcostpcq',
-      vision: false,                    // 免费名单里没有可用的对话视觉模型
     },
 
     /* 讯飞星火 X2.5 —— 第三跳兜底（走讯飞星辰 MaaS 平台）。
@@ -91,7 +106,6 @@ export const DEPLOY = {
       baseUrl: 'https://maas-api.cn-huabei-1.xf-yun.com/v2',
       model: 'spark-x2.5-4b',
       apiKey: 'ak-1aca17f179c214ba207af9d9c6098332',
-      vision: false,
       maxTokens: 1024,
       extra: { reasoning: { effort: 'none' } },
     },

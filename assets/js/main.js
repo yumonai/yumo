@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js?v=47';
-import { DeepSea } from './scene.js?v=47';
-import { Soundscape, ICONS } from './ambient.js?v=47';
-import { Listener } from './voice.js?v=47';
-import { renderGarden } from './garden.js?v=47';
-import { renderMirror } from './mirror.js?v=47';
-import { DEPLOY, hasDeployKey } from './config.js?v=47';
-import * as ai from './ai.js?v=47';
-import * as account from './account.js?v=47';
-import * as letters from './letters.js?v=47';
-import * as player from './player.js?v=47';
+import { store, uid, clamp } from './store.js?v=49';
+import { DeepSea } from './scene.js?v=49';
+import { Soundscape, ICONS } from './ambient.js?v=49';
+import { Listener } from './voice.js?v=49';
+import { renderGarden } from './garden.js?v=49';
+import { renderMirror } from './mirror.js?v=49';
+import { DEPLOY, hasDeployKey } from './config.js?v=49';
+import * as ai from './ai.js?v=49';
+import * as account from './account.js?v=49';
+import * as letters from './letters.js?v=49';
+import * as player from './player.js?v=49';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -27,7 +27,7 @@ try {
 } catch { /* 检测不了就算了，媒体查询还在 */ }
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.38';
+const YUMO_VERSION = 'v0.40';
 
 const el = {
   scene: $('#scene'),
@@ -53,8 +53,6 @@ const el = {
   soundMix: $('#sound-mix'),
   soundRows: $('#sound-rows'),
   recBar: $('#rec-bar'),
-  attStrip: $('#attachment-strip'),
-  fileInput: $('#file-image'),
   drawer: $('#drawer'),
   drawerNav: $('#drawer-nav'),
   timerLabel: $('#timer-label'),
@@ -84,7 +82,6 @@ let view = 'threshold';
 let garden = null;
 let busy = false;
 let busySince = 0;          // 本次「忙碌」的起点，用于卡死兜底
-let pendingImages = [];
 let soundTimer = null;
 
 /* ══════════════════════════════════════════════
@@ -196,12 +193,9 @@ function paintThread() {
 function messageHTML(m) {
   const isMe = m.role === 'me';
   const time = new Date(m.t).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  const imgs = (m.images || []).length
-    ? `<div class="msg__att">${m.images.map((src) => `<img src="${src}" alt="附图" loading="lazy" />`).join('')}</div>`
-    : '';
   return `
     <div class="msg msg--${isMe ? 'me' : 'yumo'}" data-id="${m.id}">
-      <div class="msg__bubble">${escapeHtml(m.text)}${imgs}</div>
+      <div class="msg__bubble">${escapeHtml(m.text)}</div>
       <div class="msg__meta">
         <span>${time}</span>
         <button class="msg__act" data-echo="${m.id}" type="button">${isMe ? '收藏这句' : '收藏'}</button>
@@ -310,6 +304,21 @@ function autoGrow() {
   el.input.style.height = Math.min(el.input.scrollHeight, 150) + 'px';
 }
 
+/* 有的通道（实测讯飞星火）爱在句首写「（轻轻应和，语气舒缓）」这类括号动作标注——
+   纯文字聊天里这很出戏。位置很固定：句首、行首，或紧跟在一句结束标点之后。
+   但不能见括号就删——正文里也可能有真的括号。所以两条同时满足才清：
+     ① 在句首/行首/句末标点之后；② 里面是动作、语气、神态这类词。
+   40 字以上的括号一律保留（那更可能是正文）。 */
+const STAGE_WORDS = /轻声|低声|柔声|语气|点头|摇头|沉默|停顿|顿了顿|目光|眼神|轻轻|温柔|平静|沉静|应和|回应|微笑|皱眉|叹息|叹气|仿若|涟漪|波纹|身侧|微光|表情|动作|姿态|舒缓|缓和|迟疑|犹豫|深吸|吐气|声音|接纳|包容|坐|看|笑|听/;
+
+function stripStageDirections(text) {
+  return String(text || '')
+    .replace(/(^|[\n。！？…])\s*[（(]([^）)]{1,40})[）)]\s*/g,
+      (whole, lead, inner) => (STAGE_WORDS.test(inner) ? lead : whole))
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /* 发送 */
 const sendStamps = [];      // 最近一分钟每次发送的时间戳
 let rateLastNote = 0;       // 上次提示「累了」的时刻（避免连环弹）
@@ -328,7 +337,7 @@ async function send() {
       return;
     }
   }
-  if (!text && !pendingImages.length) return;
+  if (!text) return;
 
   /* 一分钟内 6 次以上：Yumo 也会累。温和拦下，不删他打的字。 */
   const nowMs = Date.now();
@@ -342,12 +351,10 @@ async function send() {
   }
   sendStamps.push(nowMs);
 
-  const me = { id: uid(), role: 'me', text, images: pendingImages.slice(), t: Date.now() };
+  const me = { id: uid(), role: 'me', text, t: Date.now() };
   store.pushMessage(me);
   el.input.value = '';
   autoGrow();
-  pendingImages = [];
-  paintAttachments();
   paintThread();
   scrollThread();
 
@@ -421,6 +428,8 @@ async function send() {
       if (streamErr) break;
       await sleep(Math.min(160, Math.max(0, target - Date.now())));
     }
+
+    acc = stripStageDirections(acc);
 
     /* 出稿质检：客服腔（「很高兴…」）与「我记住了」这类把记忆说出口的话。
        人设里已经明令禁止，但实测小模型会周期性复发——所以出稿后再收一道网：
@@ -539,62 +548,6 @@ async function send() {
     el.springState.textContent = '水很静。我在这里。';
   }
 }
-
-/* 附件 */
-function paintAttachments() {
-  if (!pendingImages.length) { el.attStrip.hidden = true; el.attStrip.innerHTML = ''; return; }
-  el.attStrip.hidden = false;
-  el.attStrip.innerHTML = pendingImages.map((src, i) =>
-    `<div class="att-thumb"><img src="${src}" alt="" /><button type="button" data-rm="${i}">✕</button></div>`
-  ).join('');
-  $$('[data-rm]', el.attStrip).forEach((b) => b.addEventListener('click', () => {
-    pendingImages.splice(Number(b.dataset.rm), 1);
-    paintAttachments();
-  }));
-}
-
-const MAX_EDGE = 1280;      // 送进模型前把长边压到这个尺寸
-const MAX_KEEP = 900 * 1024; // 已经够小就不动了
-
-/** 把一张图压到可用的尺寸：既省流量，也不会撑爆 localStorage */
-function shrinkImage(file, maxEdge = MAX_EDGE, quality = 0.82) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const src = String(reader.result || '');
-      if (!src) return resolve(null);
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
-        if (scale >= 1 && src.length < MAX_KEEP) return resolve(src);
-        const w = Math.max(1, Math.round(img.width * scale));
-        const h = Math.max(1, Math.round(img.height * scale));
-        const cv = document.createElement('canvas');
-        cv.width = w;
-        cv.height = h;
-        const g = cv.getContext('2d');
-        g.drawImage(img, 0, 0, w, h);
-        try { resolve(cv.toDataURL('image/jpeg', quality)); } catch { resolve(src); }
-      };
-      img.onerror = () => resolve(src);
-      img.src = src;
-    };
-    reader.onerror = () => resolve(null);
-    reader.readAsDataURL(file);
-  });
-}
-
-el.fileInput?.addEventListener('change', async () => {
-  const files = [...(el.fileInput.files || [])].slice(0, 4);
-  for (const f of files) {
-    if (!f.type.startsWith('image/')) continue;
-    const data = await shrinkImage(f);
-    if (data) pendingImages.push(data);
-  }
-  paintAttachments();
-  if (pendingImages.length) whisper('图已经放进水里了。Yumo 看得见它。', 4200);
-  el.fileInput.value = '';
-});
 
 /* 语音 */
 function toggleListen() {
@@ -1406,7 +1359,6 @@ el.input?.addEventListener('keydown', (e) => {
 $('#btn-send')?.addEventListener('click', send);
 $('#btn-mic')?.addEventListener('click', toggleListen);
 $('#btn-rec-stop')?.addEventListener('click', () => listener.stop());
-$('#btn-image')?.addEventListener('click', () => el.fileInput?.click());
 
 /* 深潜 */
 $('#btn-deep')?.addEventListener('click', () => {

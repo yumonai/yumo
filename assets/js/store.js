@@ -29,7 +29,7 @@ const DEFAULTS = {
     lastUpdated: 0,
     turns: 0,                // 累计对话轮数
   },
-  messages: [],              // [{id, role, text, images:[], t, mood}]
+  messages: [],              // [{id, role, text, t}]
   memories: [],              // [{id, t, text, kind}]
   echoes: [],                // 收藏的金句 [{id,t,text,from}]
   journals: [],              // 潮汐记 · 每段对话的总结 [{id,t,title,text,echoes:[]}]
@@ -98,13 +98,7 @@ export const store = {
   /** 直接替换某分区（数组用） */
   put(key, value) {
     state[key] = value;
-    let ok = write(key, value);
-    // 图片是 base64，很容易把 localStorage 撑爆。写不进去时先卸下历史图片再试一次。
-    if (!ok && key === 'messages') {
-      state[key] = value.map((m) => (m.images && m.images.length ? { ...m, images: [] } : m));
-      ok = write(key, state[key]);
-      if (ok) console.info('[yumo] 空间不够，已经把旧的图片卸下来了。');
-    }
+    write(key, value);
     listeners.forEach((fn) => fn(key, state[key]));
     return state[key];
   },
@@ -114,14 +108,7 @@ export const store = {
   /* ── 便捷方法 ── */
 
   pushMessage(msg) {
-    let list = state.messages.concat(msg).slice(-600);
-    // base64 图片很占地方，只留最近 4 条带图消息的图，其余保留文字
-    const withImg = list.filter((m) => m.images && m.images.length);
-    if (withImg.length > 4) {
-      const drop = new Set(withImg.slice(0, withImg.length - 4).map((m) => m.id));
-      list = list.map((m) => (drop.has(m.id) ? { ...m, images: [] } : m));
-    }
-    return this.put('messages', list);
+    return this.put('messages', state.messages.concat(msg).slice(-600));
   },
 
   pushMemory(text, kind = 'moment') {
@@ -198,38 +185,12 @@ export const store = {
     this.set('profile', patch);
   },
 
-  /**
-   * 取最近 n 轮对话，转成上游能读的消息。
-   * 带图的消息会变成 content 数组（text + image_url），
-   * 但只对最近 maxImageMsgs 条真的附图 —— 图片很贵。
-   */
-  recentTurns(n = 16, { maxImageMsgs = 2, maxImagesPerMsg = 2 } = {}) {
-    const msgs = state.messages.filter((m) => !m.system).slice(-n * 2);
-
-    const keepImage = new Set();
-    let taken = 0;
-    for (let i = msgs.length - 1; i >= 0; i--) {
-      const m = msgs[i];
-      if (m.role === 'me' && m.images && m.images.length && taken < maxImageMsgs) {
-        keepImage.add(m.id);
-        taken++;
-      }
-    }
-
-    return msgs.map((m) => {
-      const role = m.role === 'me' ? 'user' : 'assistant';
-      const text = m.text || '';
-      const imgs = keepImage.has(m.id) ? m.images.slice(0, maxImagesPerMsg) : [];
-      if (!imgs.length) return { role, content: text };
-      if (role !== 'user') return { role, content: text };
-      return {
-        role,
-        content: [
-          { type: 'text', text: text || '（我没有写字，只放进了一张图。）' },
-          ...imgs.map((url) => ({ type: 'image_url', image_url: { url } })),
-        ],
-      };
-    });
+  /** 取最近 n 轮对话，转成上游能读的消息 */
+  recentTurns(n = 16) {
+    return state.messages
+      .filter((m) => !m.system)
+      .slice(-n * 2)
+      .map((m) => ({ role: m.role === 'me' ? 'user' : 'assistant', content: m.text || '' }));
   },
 
   wipe() {
