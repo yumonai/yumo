@@ -66,22 +66,49 @@ async function call(path, { method = 'GET', body, token, prefer } = {}) {
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
   if (!res.ok) {
     const msg = (data && (data.msg || data.message || data.error_description || data.error)) || `HTTP ${res.status}`;
-    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    const err = new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    err.status = res.status;            // 让上层能区分「令牌坏了(400)」和「网络抖了」
+    throw err;
   }
   return data;
 }
 
 /** 确保访问令牌还有效，快过期就换新的 */
+let refreshInFlight = null;   // 单飞锁：并发请求共享同一次刷新
+
 async function freshToken() {
   if (!session) throw new Error('未登录');
   const exp = session.expires_at || 0;
   if (exp && exp - Date.now() / 1000 > 90) return session.access_token;
-  const d = await call('/auth/v1/token?grant_type=refresh_token', {
-    method: 'POST', body: { refresh_token: session.refresh_token },
-  });
-  session = normalize(d, session.user);
-  saveSession(session);
-  return session.access_token;
+
+  /* 关键修复：Supabase 的刷新令牌是旋转式的——同一时刻多个请求各刷一次，
+     后到的会被判定「令牌复用」，整个会话家族被吊销（Invalid Refresh Token）。
+     所以并发时只允许一次刷新在飞，大家共享同一个 Promise。 */
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const d = await call('/auth/v1/token?grant_type=refresh_token', {
+          method: 'POST', body: { refresh_token: session.refresh_token },
+        });
+        session = normalize(d, session.user);
+        saveSession(session);
+        notify();
+        return session.access_token;
+      } catch (e) {
+        /* 刷新端点返回 400 = 令牌已失效（过期太久 / 被判定复用 / 账号被删）——
+           措辞各家不同，所以按状态码判定，不猜文案。
+           本地会话作废。数据都在云端，重新登录就会回来。 */
+        if (e.status === 400) {
+          session = null; saveSession(null); notify();
+          throw new Error('登录状态已过期，请重新登录。你的一切都还在云端，登录后就会回来。');
+        }
+        throw e;
+      } finally {
+        refreshInFlight = null;
+      }
+    })();
+  }
+  return refreshInFlight;
 }
 
 function normalize(d, fallbackUser) {
@@ -120,7 +147,12 @@ export async function signOut() {
 
 /** 彻底注销：删掉云端账号与全部数据，不可恢复 */
 export async function deleteAccount() {
-  await call('/rest/v1/rpc/delete_own_account', { method: 'POST', token: await freshToken() });
+  try {
+    await call('/rest/v1/rpc/delete_own_account', { method: 'POST', token: await freshToken() });
+  } catch (e) {
+    if (/登录状态已过期/.test(String(e.message))) throw e;   // 让用户先重新登录
+    throw e;
+  }
   session = null; saveSession(null); notify();
 }
 
