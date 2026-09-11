@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js?v=49';
-import { DeepSea } from './scene.js?v=49';
-import { Soundscape, ICONS } from './ambient.js?v=49';
-import { Listener } from './voice.js?v=49';
-import { renderGarden } from './garden.js?v=49';
-import { renderMirror } from './mirror.js?v=49';
-import { DEPLOY, hasDeployKey } from './config.js?v=49';
-import * as ai from './ai.js?v=49';
-import * as account from './account.js?v=49';
-import * as letters from './letters.js?v=49';
-import * as player from './player.js?v=49';
+import { store, uid, clamp } from './store.js?v=50';
+import { DeepSea } from './scene.js?v=50';
+import { Soundscape, ICONS } from './ambient.js?v=50';
+import { Listener } from './voice.js?v=50';
+import { renderGarden } from './garden.js?v=50';
+import { renderMirror } from './mirror.js?v=50';
+import { DEPLOY, hasDeployKey } from './config.js?v=50';
+import * as ai from './ai.js?v=50';
+import * as account from './account.js?v=50';
+import * as letters from './letters.js?v=50';
+import * as player from './player.js?v=50';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -27,7 +27,7 @@ try {
 } catch { /* 检测不了就算了，媒体查询还在 */ }
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.40';
+const YUMO_VERSION = 'v0.41';
 
 const el = {
   scene: $('#scene'),

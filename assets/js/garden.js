@@ -3,7 +3,7 @@
    星图（Yumo 眼中的你）· 记忆 · 回声 · 潮汐记
    ══════════════════════════════════════════════ */
 
-import { store } from './store.js?v=49';
+import { store } from './store.js?v=50';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
