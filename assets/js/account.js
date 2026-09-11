@@ -13,8 +13,8 @@
      它只删「当前登录者自己」，别人碰不到别人的数据。
    ══════════════════════════════════════════════ */
 
-import { store } from './store.js?v=51';
-import { DEPLOY } from './config.js?v=51';
+import { store } from './store.js?v=52';
+import { DEPLOY } from './config.js?v=52';
 
 const CONF = DEPLOY.supabase || {};
 export const enabled = !!(CONF.url && CONF.publishableKey);
