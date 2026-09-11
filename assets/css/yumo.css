@@ -287,10 +287,8 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   color:var(--mist-300);padding:9px 0 0 6px;
   animation:rise-in 1.8s var(--ease-soft) both;
 }
-/* 信件按钮相对整条头部绝对居中——flex 两端布局里左右元素不等宽时会挤偏 */
-.spring__top #btn-letter{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-}
+/* 头部是 grid 三栏（1fr auto 1fr）：品牌左 / 信件中 / 菜单右。
+   信件按钮天然居中，绝不能再加绝对定位——那会把菜单挤进中栏。 */
 .orb-btn{
   display:inline-flex;align-items:center;gap:8px;
   padding:9px 16px 9px 13px;border-radius:var(--r-pill);
@@ -1581,12 +1579,19 @@ button.chip:hover{border-color:var(--tide-400);color:var(--tide-100)}
    iOS 在部分机型/模式下 env(safe-area-inset-top) 会返回 0，
    导致头部内容顶进灵动岛区域。独立模式下改用固定避让值，
    覆盖 iPhone 全系（灵动岛机型 59px，留 62px 余量）。 */
+/* 独立 PWA：两种判定并用——CSS 媒体查询 + JS 加的 .is-pwa 类
+   （iOS 上 display-mode 支持与缓存都不可靠，双保险） */
 @media (display-mode: standalone){
   .spring__top{padding-top:62px}
   #view-threshold .threshold{padding-top:60px}
   .letter-sheet{padding-top:60px}
   .mirror-body{padding-top:14px}
-  /* 所有内页顶栏（心象/花园/声境等）同样避开灵动岛 */
   .view--sheet .bar{padding-top:56px}
   .letter-paper{max-height:calc(88vh - 44px)}
 }
+html.is-pwa .spring__top{padding-top:62px}
+html.is-pwa #view-threshold .threshold{padding-top:60px}
+html.is-pwa .letter-sheet{padding-top:60px}
+html.is-pwa .mirror-body{padding-top:14px}
+html.is-pwa .view--sheet .bar{padding-top:56px}
+html.is-pwa .letter-paper{max-height:calc(88vh - 44px)}

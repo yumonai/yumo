@@ -18,6 +18,14 @@ import * as player from './player.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
+/* 独立 PWA 检测：iOS 添加到主屏幕后 navigator.standalone === true。
+   加一个 html.is-pwa 类，让「避开灵动岛」的样式在媒体查询失效时也生效。 */
+try {
+  const pwa = (typeof navigator !== 'undefined' && navigator.standalone === true)
+    || (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches);
+  if (pwa) document.documentElement.classList.add('is-pwa');
+} catch { /* 检测不了就算了，媒体查询还在 */ }
+
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
 const YUMO_VERSION = 'v0.33';
 
