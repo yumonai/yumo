@@ -120,7 +120,7 @@ export function mountPlayer(container) {
 
         <div class="music-list">
           ${tracks.map((t, i) => `
-            <button class="music-row" data-i="${i}" type="button">
+            <button class="music-row" data-i="${i}" type="button" title="${t.credit || ''}">
               <span class="music-row__cover"><img src="${t.cover}" alt="" loading="lazy" /></span>
               <span class="music-row__txt">
                 <b>${t.title}</b>

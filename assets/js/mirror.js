@@ -37,6 +37,9 @@ const G = {
   intertidal: '<path d="M8 40h48" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 30c8-5 12-5 20 0s12 5 20 0" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".6"/><circle cx="32" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="1.4"/>',
 };
 
+/* 牌面配图（assets/img/water/）：Wikimedia Commons 公版/CC0 图片。
+   蝉蜕一张为 CC BY-SA 4.0，作者 Basile Morin——特此署名。
+   其余均为 Public Domain 或 CC0。 */
 /* ── 22 张牌 ── */
 export const CARDS = [
   { id: 'diver',   name: '潜者',   glyph: 'spiral',     el: '潮', kw: ['出发', '向下', '未知'],
@@ -120,9 +123,13 @@ export function cardFace(card, { small = false } = {}) {
       </div>`;
   }
 
+  /* 牌面配图：公版画作（assets/img/water/<id>.jpg），加载失败自动退回符号 */
+  const img = `<img class="water-img" src="assets/img/water/${card.id}.jpg" alt="" loading="lazy" decoding="async"
+    onerror="this.closest('.drawn__art').classList.remove('has-img');this.remove()" />`;
   return `
-    <div class="drawn__art" style="${small ? 'height:104px' : ''}">
-      <svg viewBox="0 0 64 64" aria-hidden="true">${G[card.glyph] || G.core}</svg>
+    <div class="drawn__art has-img" style="${small ? 'height:104px' : ''}">
+      ${img}
+      <svg viewBox="0 0 64 64" aria-hidden="true" class="water-fallback">${G[card.glyph] || G.core}</svg>
       <em>${card.el}</em>
     </div>
     <div class="drawn__meta">

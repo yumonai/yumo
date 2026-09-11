@@ -54,6 +54,51 @@
       "file": "assets/music/nocturne.m4a",
       "cover": "assets/music/covers/chopin.jpg",
       "credit": "CC BY-NC-ND 3.0（Wikimedia Commons）"
+    },
+    {
+      "id": "swan2",
+      "title": "Swan Lake, Op. 20 – Act II (Extract)",
+      "sub": "天鹅湖 · 第二幕选段",
+      "composer": "柴可夫斯基",
+      "file": "assets/music/swan2.m4a",
+      "cover": "assets/music/covers/tchaikovsky.jpg",
+      "credit": "Ballet Francaise Symphony Orchestra · 公版（Wikimedia Commons）"
+    },
+    {
+      "id": "swan4",
+      "title": "Swan Lake, Op. 20 – Act IV: No. 29 Finale",
+      "sub": "天鹅湖 · 第四幕 终曲",
+      "composer": "柴可夫斯基",
+      "file": "assets/music/swan4.m4a",
+      "cover": "assets/music/covers/tchaikovsky.jpg",
+      "credit": "Antal Doráti 指挥 · 公版（Wikimedia Commons）"
+    },
+    {
+      "id": "winter1",
+      "title": "The Four Seasons, RV 297 \"L'inverno\" – I. Allegro non molto",
+      "sub": "四季 · 冬 第一乐章",
+      "composer": "维瓦尔第",
+      "file": "assets/music/winter1.m4a",
+      "cover": "assets/music/covers/vivaldi.jpg",
+      "credit": "小提琴 John Harrison · CC BY-SA 4.0（Wikimedia Commons）"
+    },
+    {
+      "id": "winter2",
+      "title": "The Four Seasons, RV 297 \"L'inverno\" – II. Largo",
+      "sub": "四季 · 冬 第二乐章",
+      "composer": "维瓦尔第",
+      "file": "assets/music/winter2.m4a",
+      "cover": "assets/music/covers/vivaldi.jpg",
+      "credit": "小提琴 John Harrison · CC BY-SA 4.0（Wikimedia Commons）"
+    },
+    {
+      "id": "winter3",
+      "title": "The Four Seasons, RV 297 \"L'inverno\" – III. Allegro",
+      "sub": "四季 · 冬 第三乐章",
+      "composer": "维瓦尔第",
+      "file": "assets/music/winter3.m4a",
+      "cover": "assets/music/covers/vivaldi.jpg",
+      "credit": "小提琴 John Harrison · CC BY-SA 4.0（Wikimedia Commons）"
     }
   ]
 }

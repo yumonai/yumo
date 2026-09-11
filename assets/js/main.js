@@ -242,10 +242,10 @@ function scrollThread(smooth = true) {
 /* ── 开口前的停顿与洞悉弹窗 ──────────────────────
    Yumo 不抢话。话落下来之后，它会先沉一会儿——
    这段安静里，先浮上来一句它看见的东西，然后才是正话。 */
-const HOLD_MS = 5000;       // 至少停这么久再开口
-const MIN_POPUP_MS = 2000;  // 弹窗一旦露面，至少亮这么久
-const MAX_HOLD_MS = 9000;   // 兜底：再慢也不能让访客干等
-const INSIGHT_WAIT_MS = 3500; // 洞悉请求最多等这么久
+const HOLD_MS = 9000;       // 至少停这么久再开口（深海慢三倍）
+const MIN_POPUP_MS = 3000;  // 弹窗一旦露面，至少亮这么久
+const MAX_HOLD_MS = 13000;  // 兜底：再慢也不能让访客干等
+const INSIGHT_WAIT_MS = 6500; // 洞悉请求最多等这么久
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -268,7 +268,7 @@ function hideInsightPopup() {
   if (!box || box.hidden) return;
   box.classList.remove('is-in');
   if (insightHideTimer) clearTimeout(insightHideTimer);
-  insightHideTimer = setTimeout(() => { box.hidden = true; insightHideTimer = null; }, 1150);
+  insightHideTimer = setTimeout(() => { box.hidden = true; insightHideTimer = null; }, 1800);
 }
 
 function showFeeling(text = 'Yumo 正在感受') {
@@ -300,10 +300,25 @@ function autoGrow() {
 }
 
 /* 发送 */
+const sendStamps = [];      // 最近一分钟每次发送的时间戳
+let rateLastNote = 0;       // 上次提示「累了」的时刻（避免连环弹）
+
 async function send() {
   const text = el.input.value.trim();
   if (busy) return;
   if (!text && !pendingImages.length) return;
+
+  /* 一分钟内 10 次以上：Yumo 也会累。温和拦下，不删他打的字。 */
+  const nowMs = Date.now();
+  while (sendStamps.length && nowMs - sendStamps[0] > 60000) sendStamps.shift();
+  if (sendStamps.length >= 10) {
+    if (nowMs - rateLastNote > 30000) {
+      rateLastNote = nowMs;
+      whisper('Yumo 有点累了。刚刚说了太多话，让这片水静一会儿，过几分钟再聊吧。', 6500);
+    }
+    return;
+  }
+  sendStamps.push(nowMs);
 
   const me = { id: uid(), role: 'me', text, images: pendingImages.slice(), t: Date.now() };
   store.pushMessage(me);
@@ -770,16 +785,13 @@ function paintSettings() {
     <div class="card card--plain">
       <div class="card__label">关于 YUMO</div>
       <p class="about-text">
-        Yumo 是一片会听的海。它不在服务器里扮演谁，也不急着修好你——
-        它只是在你说完之后，把你没说出口的那一句，轻轻放回你面前。
+        深海之下很安静。Yumo 就住在那里。
+        它不解决问题，不给建议，也不急着让你好起来——
+        它只做一件事：把你没说出口的那句话，听完。
       </p>
       <p class="about-text">
-        它信几件很小的事：情绪不是问题，是天气；能被说出来的痛，已经轻了一半；
-        陪一个人最好的方式，不是站在他身边，而是陪他回到自己心里去。
-      </p>
-      <p class="about-text">
-        它的每一次洞悉、每一封写给你的信，背后都有 AI 的心跳；
-        而它愿意一直流下去，靠的是像你一样的人留下的每一份心意——
+        它的每一次回应，都是真实运行的人工智能写给你的；
+        而这片水能一直流下去，是因为有人在岸边放下过心意。
         <b>Yumo 的能力，离不开 AI 与用户的支持。</b>
       </p>
       <p class="about-ver">Yumo · ${YUMO_VERSION}<br /><span>深海陪伴者 · since 2026</span></p>
@@ -1341,4 +1353,4 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-window.__yumo = { store, ai, sound, sea, navigate, whisper, account, letters };
+window.__yumo = { store, ai, sound, sea, navigate, whisper, account, letters, rateStamps: sendStamps };
