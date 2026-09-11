@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js?v=46';
-import { DeepSea } from './scene.js?v=46';
-import { Soundscape, ICONS } from './ambient.js?v=46';
-import { Listener } from './voice.js?v=46';
-import { renderGarden } from './garden.js?v=46';
-import { renderMirror } from './mirror.js?v=46';
-import { DEPLOY, hasDeployKey } from './config.js?v=46';
-import * as ai from './ai.js?v=46';
-import * as account from './account.js?v=46';
-import * as letters from './letters.js?v=46';
-import * as player from './player.js?v=46';
+import { store, uid, clamp } from './store.js?v=47';
+import { DeepSea } from './scene.js?v=47';
+import { Soundscape, ICONS } from './ambient.js?v=47';
+import { Listener } from './voice.js?v=47';
+import { renderGarden } from './garden.js?v=47';
+import { renderMirror } from './mirror.js?v=47';
+import { DEPLOY, hasDeployKey } from './config.js?v=47';
+import * as ai from './ai.js?v=47';
+import * as account from './account.js?v=47';
+import * as letters from './letters.js?v=47';
+import * as player from './player.js?v=47';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -27,7 +27,7 @@ try {
 } catch { /* 检测不了就算了，媒体查询还在 */ }
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.37';
+const YUMO_VERSION = 'v0.38';
 
 const el = {
   scene: $('#scene'),
@@ -433,6 +433,16 @@ async function send() {
         const better = await ai.rewrite(sys, history, acc).catch(() => '');
         if (better && !ai.needsDestock(better)) acc = better;
       }
+    }
+
+    /* 危机兜底（硬保证）：热线不能依赖模型自觉。
+       人设与系统指令都要求它给热线，实测仍然会漏（两次测试里两次漏）。
+       所以最后一关放在代码里：命中危机却没写热线，就直接补在末尾。
+       宁可这一轮显得重复，也绝不能漏——这是整个产品最不能失手的一处。 */
+    if (ai.isCrisis(String(text || '')) && !/400-161-9995/.test(acc)) {
+      const tail = '如果你此刻有伤害自己的念头，请立刻拨打希望24热线 400-161-9995，'
+        + '紧急情况拨 120，或者现在就去找一个现实中的人陪你。这件事不该一个人扛。';
+      acc = acc ? `${acc.trim()}\n\n${tail}` : tail;
     }
 
     revealed = true;
