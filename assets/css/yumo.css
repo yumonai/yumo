@@ -272,7 +272,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 
 /* ── 6. 深处（主厅） ───────────────────────────────────────── */
 .spring__top{
-  display:flex;justify-content:space-between;align-items:flex-start;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
   padding:calc(var(--safe-t) + 20px) 20px 0;
 }
 /* 独立 PWA 全屏下灵动岛约 59px——safe-area 之外再加 34px 保底，
@@ -280,6 +280,8 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 @supports (padding: env(safe-area-inset-top, 0px)) {
   .spring__top{padding-top:calc(max(var(--safe-t), env(safe-area-inset-top, 0px)) + 34px)}
 }
+.spring__mark{justify-self:start}
+.spring__top #btn-menu{justify-self:end}
 .spring__mark{
   font-family:var(--font-serif);font-size:12.5px;letter-spacing:.42em;text-indent:.42em;
   color:var(--mist-300);padding:9px 0 0 6px;
@@ -1574,3 +1576,17 @@ button.chip:hover{border-color:var(--tide-400);color:var(--tide-100)}
 .reread{font-size:9.5px;letter-spacing:.08em;color:var(--mist-400)}
 .reread--new{color:var(--tide-200)}
 [data-jr]{cursor:pointer}
+
+/* ── 独立 PWA（添加到主屏幕）：顶部避开灵动岛/挖孔 ──
+   iOS 在部分机型/模式下 env(safe-area-inset-top) 会返回 0，
+   导致头部内容顶进灵动岛区域。独立模式下改用固定避让值，
+   覆盖 iPhone 全系（灵动岛机型 59px，留 62px 余量）。 */
+@media (display-mode: standalone){
+  .spring__top{padding-top:62px}
+  #view-threshold .threshold{padding-top:60px}
+  .letter-sheet{padding-top:60px}
+  .mirror-body{padding-top:14px}
+  /* 所有内页顶栏（心象/花园/声境等）同样避开灵动岛 */
+  .view--sheet .bar{padding-top:56px}
+  .letter-paper{max-height:calc(88vh - 44px)}
+}
