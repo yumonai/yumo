@@ -19,7 +19,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.28';
+const YUMO_VERSION = 'v0.29';
 
 const el = {
   scene: $('#scene'),
