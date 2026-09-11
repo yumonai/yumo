@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js?v=45';
-import { DeepSea } from './scene.js?v=45';
-import { Soundscape, ICONS } from './ambient.js?v=45';
-import { Listener } from './voice.js?v=45';
-import { renderGarden } from './garden.js?v=45';
-import { renderMirror } from './mirror.js?v=45';
-import { DEPLOY, hasDeployKey } from './config.js?v=45';
-import * as ai from './ai.js?v=45';
-import * as account from './account.js?v=45';
-import * as letters from './letters.js?v=45';
-import * as player from './player.js?v=45';
+import { store, uid, clamp } from './store.js?v=46';
+import { DeepSea } from './scene.js?v=46';
+import { Soundscape, ICONS } from './ambient.js?v=46';
+import { Listener } from './voice.js?v=46';
+import { renderGarden } from './garden.js?v=46';
+import { renderMirror } from './mirror.js?v=46';
+import { DEPLOY, hasDeployKey } from './config.js?v=46';
+import * as ai from './ai.js?v=46';
+import * as account from './account.js?v=46';
+import * as letters from './letters.js?v=46';
+import * as player from './player.js?v=46';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -27,7 +27,7 @@ try {
 } catch { /* 检测不了就算了，媒体查询还在 */ }
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.36';
+const YUMO_VERSION = 'v0.37';
 
 const el = {
   scene: $('#scene'),
@@ -256,6 +256,7 @@ const HOLD_MS = 9000;       // 至少停这么久再开口（深海慢三倍）
 const MIN_POPUP_MS = 3000;  // 弹窗一旦露面，至少亮这么久
 const MAX_HOLD_MS = 13000;  // 兜底：再慢也不能让访客干等
 const INSIGHT_WAIT_MS = 6500; // 洞悉请求最多等这么久
+const DESTOCK_WAIT_MS = 2500;  // 出稿质检前，等正文收齐最多这么久
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -419,6 +420,19 @@ async function send() {
     while (Date.now() < target) {
       if (streamErr) break;
       await sleep(Math.min(160, Math.max(0, target - Date.now())));
+    }
+
+    /* 出稿质检：客服腔（「很高兴…」）与「我记住了」这类把记忆说出口的话。
+       人设里已经明令禁止，但实测小模型会周期性复发——所以出稿后再收一道网：
+       命中就退回重写一次，重写没更干净就照原样发出（绝不让回复变空）。
+       危机轮直接跳过：那一轮的热线必须原样送达，不能被改写碰掉。
+       此处打字机还没启动，访客看不到任何文字，改写不会造成跳字。 */
+    if (!ai.isCrisis(String(text || ''))) {
+      await Promise.race([streamDone, sleep(DESTOCK_WAIT_MS)]);
+      if (acc && ai.needsDestock(acc)) {
+        const better = await ai.rewrite(sys, history, acc).catch(() => '');
+        if (better && !ai.needsDestock(better)) acc = better;
+      }
     }
 
     revealed = true;
