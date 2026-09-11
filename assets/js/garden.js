@@ -205,6 +205,22 @@ function tabLog() {
     </div>`).join('');
 }
 
+function tabKept() {
+  const list = [...store.get('letters')].filter((l) => l.kept).reverse();
+  if (!list.length) {
+    return `<div class="card"><p class="empty-line">还没有存下的信。<br />在「来自 Yumo 的信」里点「在心里存下」，<br />它就会离开水面，来到这里。</p></div>`;
+  }
+  return list.map((l) => `
+    <div class="card">
+      <div class="card__label">${esc(l.date || '')}${l.theme ? ' · ' + esc(l.theme) : ''}</div>
+      ${l.img ? `<img class="kept-img" src="${esc(l.img)}" alt="" loading="lazy" />` : ''}
+      ${l.text ? `<blockquote class="kept-quote">${esc(l.text)}</blockquote>` : ''}
+      <p class="kept-body">${esc(l.body || '')}</p>
+      ${l.question ? `<p class="kept-q">${esc(l.question)}</p>` : ''}
+      <small class="kept-src">${esc(l.author || '')}${l.source ? ' · ' + esc(l.source) : ''}</small>
+    </div>`).join('');
+}
+
 /* ── 渲染入口 ── */
 export function renderGarden(root, { whisper, refresh }) {
   let tab = 'profile';
@@ -215,6 +231,7 @@ export function renderGarden(root, { whisper, refresh }) {
       memory: tabMemory,
       echo: tabEcho,
       log: tabLog,
+      kept: tabKept,
     }[tab])();
 
     // 记忆：忘掉

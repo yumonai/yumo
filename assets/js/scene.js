@@ -129,7 +129,7 @@ export class DeepSea {
         w: rand(0.18, 0.40) * this.w,
         len: rand(0.9, 1.3),
         tilt: rand(-0.26, 0.26),
-        alpha: rand(0.11, 0.215),
+        alpha: rand(0.085, 0.17),
         phase: rand(0, TAU),
         speed: rand(0.016, 0.045),
         drift: rand(-1.6, 1.6),
@@ -188,9 +188,9 @@ export class DeepSea {
     // ① 水底渐变
     const g = ctx.createLinearGradient(0, 0, 0, h);
     const { r, g: gg, b } = this.hue;
-    g.addColorStop(0, `rgb(${Math.round(r * 0.36)},${Math.round(gg * 0.34)},${Math.round(b * 0.36)})`);
-    g.addColorStop(0.38, `rgb(${Math.round(r * 0.16)},${Math.round(gg * 0.17)},${Math.round(b * 0.20)})`);
-    g.addColorStop(1, '#010306');
+    g.addColorStop(0, `rgb(${Math.round(r * 0.40)},${Math.round(gg * 0.38)},${Math.round(b * 0.40)})`);
+    g.addColorStop(0.38, `rgb(${Math.round(r * 0.19)},${Math.round(gg * 0.20)},${Math.round(b * 0.24)})`);
+    g.addColorStop(1, '#020509');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 

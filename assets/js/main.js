@@ -19,7 +19,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.25';
+const YUMO_VERSION = 'v0.27';
 
 const el = {
   scene: $('#scene'),
@@ -1109,15 +1109,19 @@ brandMark?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.reload(); }
 });
 
-/* 首次进首页时，给两个角落各浮一个小提示（每次会话只提示一次） */
+/* 进首页时，两个角落各浮一个小提示，4 秒后自动消失 */
+let hintTimers = [];
 function greetHints() {
-  if (sessionStorage.getItem('yumo.hinted')) return;
-  sessionStorage.setItem('yumo.hinted', '1');
+  hintTimers.forEach(clearTimeout); hintTimers = [];
   const a = $('#hint-brand'); const b = $('#hint-menu');
   if (!a || !b) return;
-  setTimeout(() => { a.hidden = false; requestAnimationFrame(() => a.classList.add('is-in')); }, 1400);
-  setTimeout(() => { b.hidden = false; requestAnimationFrame(() => b.classList.add('is-in')); }, 2200);
-  setTimeout(() => [a, b].forEach((el) => { el.classList.remove('is-in'); setTimeout(() => { el.hidden = true; }, 700); }), 7800);
+  [a, b].forEach((el) => { el.hidden = true; el.classList.remove('is-in'); });
+  hintTimers.push(setTimeout(() => {
+    [a, b].forEach((el) => { el.hidden = false; requestAnimationFrame(() => el.classList.add('is-in')); });
+  }, 1300));
+  hintTimers.push(setTimeout(() => {
+    [a, b].forEach((el) => { el.classList.remove('is-in'); setTimeout(() => { el.hidden = true; }, 700); });
+  }, 5300));   // 可见约 4 秒
 }
 
 $('#core')?.addEventListener('click', () => navigate('talk'));
@@ -1192,6 +1196,8 @@ function renderLetter(l) {
 let letterTimer = null;
 
 function openLetterSheet() {
+  keepOutTimers.forEach(clearTimeout); keepOutTimers = [];   // 清掉上一次存信的遗留动画
+  clearTimeout(letterTimer);
   el.letterSheet.hidden = false;
   el.letterBody.scrollTop = 0;
   el.letterSheet.classList.remove('is-open');
@@ -1236,6 +1242,7 @@ function openLetterSheet() {
 }
 
 /* 在心里存下：把这封信记进 Yumo 的记忆，并标记为存下 */
+let keepOutTimers = [];
 function keepLetter() {
   const l = letterNow;
   const btn = $('#letter-keep');
@@ -1249,6 +1256,17 @@ function keepLetter() {
   btn.classList.add('is-kept');
   btn.disabled = true;
   whisper('存进了。以后我再想起这段水，会记得你把它收好了。', 5200);
+  /* 存下后，信纸缓缓向下缩小、退出界面（计时器可取消——防止与新开的信打架） */
+  const sheet = el.letterSheet;
+  keepOutTimers.forEach(clearTimeout);
+  keepOutTimers = [
+    setTimeout(() => sheet.classList.add('is-keep-out'), 900),
+    setTimeout(() => {
+      sheet.classList.remove('is-keep-out', 'is-in', 'is-open');
+      sheet.hidden = true;
+      refreshLetterDot();
+    }, 2550),
+  ];
 }
 
 $('#letter-keep')?.addEventListener('click', keepLetter);

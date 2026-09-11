@@ -1202,6 +1202,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   overflow-y:auto;
 }
 .letter-sheet.is-in{opacity:1}
+
 .letter-paper{
   position:relative;width:min(94vw,470px);max-height:88vh;overflow-y:auto;
   box-sizing:border-box;
@@ -1462,8 +1463,8 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   animation-delay:calc(.5s + var(--i, 0) * .22s);
 }
 @keyframes letter-line{
-  from{opacity:0;transform:translateY(12px);filter:blur(5px)}
-  to{opacity:1;transform:none;filter:blur(0)}
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:none}
 }
 
 /* ── 关于 YUMO ──────────────────────────────── */
@@ -1520,3 +1521,32 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   background:rgba(168,216,232,.07);cursor:default;letter-spacing:.2em;
 }
 .spring__top{position:relative}
+
+/* ── 花园 · 存下的信 ────────────────────────── */
+.kept-img{
+  width:100%;max-height:220px;object-fit:cover;display:block;
+  border-radius:var(--r-xs);border:1px solid var(--line-soft);
+  filter:sepia(.24) brightness(.94) contrast(.97);margin-bottom:13px;
+}
+.kept-quote{
+  margin:0 0 13px;padding:12px 15px;border-left:2px solid var(--tide-300);
+  background:rgba(210,236,250,.045);border-radius:0 var(--r-sm) var(--r-sm) 0;
+  font-family:var(--font-serif);font-size:12.5px;line-height:2;color:var(--mist-100);
+}
+.kept-body{margin:0 0 13px;font-family:var(--font-serif);font-size:13.5px;line-height:2.1;color:var(--mist-050)}
+.kept-q{
+  margin:0 0 12px;padding:10px 14px;border-radius:var(--r-sm);
+  background:rgba(210,236,250,.05);font-family:var(--font-serif);
+  font-size:12.5px;color:var(--tide-100);line-height:1.9;
+}
+.kept-src{font-size:10px;letter-spacing:.1em;color:var(--mist-400)}
+
+/* ── 存下退出：向下缓慢缩小（优先级须盖过 is-open 的整屏与媒体查询规则）── */
+.letter-sheet.is-keep-out{pointer-events:none;opacity:1}
+.letter-sheet.is-keep-out.is-in .letter-paper,
+.letter-sheet.is-keep-out.is-open .letter-paper,
+.letter-sheet.is-keep-out .letter-paper{
+  transform:translateY(54vh) scale(.58) !important;
+  opacity:0 !important;
+  transition:transform 1.5s cubic-bezier(.5,.06,.68,.4),opacity 1.4s var(--ease-soft) !important;
+}
