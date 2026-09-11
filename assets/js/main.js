@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js?v=44';
-import { DeepSea } from './scene.js?v=44';
-import { Soundscape, ICONS } from './ambient.js?v=44';
-import { Listener } from './voice.js?v=44';
-import { renderGarden } from './garden.js?v=44';
-import { renderMirror } from './mirror.js?v=44';
-import { DEPLOY, hasDeployKey } from './config.js?v=44';
-import * as ai from './ai.js?v=44';
-import * as account from './account.js?v=44';
-import * as letters from './letters.js?v=44';
-import * as player from './player.js?v=44';
+import { store, uid, clamp } from './store.js?v=45';
+import { DeepSea } from './scene.js?v=45';
+import { Soundscape, ICONS } from './ambient.js?v=45';
+import { Listener } from './voice.js?v=45';
+import { renderGarden } from './garden.js?v=45';
+import { renderMirror } from './mirror.js?v=45';
+import { DEPLOY, hasDeployKey } from './config.js?v=45';
+import * as ai from './ai.js?v=45';
+import * as account from './account.js?v=45';
+import * as letters from './letters.js?v=45';
+import * as player from './player.js?v=45';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -27,7 +27,7 @@ try {
 } catch { /* 检测不了就算了，媒体查询还在 */ }
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.35';
+const YUMO_VERSION = 'v0.36';
 
 const el = {
   scene: $('#scene'),
@@ -83,6 +83,7 @@ const listener = new Listener();
 let view = 'threshold';
 let garden = null;
 let busy = false;
+let busySince = 0;          // 本次「忙碌」的起点，用于卡死兜底
 let pendingImages = [];
 let soundTimer = null;
 
@@ -314,7 +315,18 @@ let rateLastNote = 0;       // 上次提示「累了」的时刻（避免连环�
 
 async function send() {
   const text = el.input.value.trim();
-  if (busy) return;
+  if (busy) {
+    /* 兜底闸：正常一轮最迟 14 秒内落地（MAX_HOLD_MS=13s + 打字机）。
+       超过 45 秒还挂着，说明收尾路径出错了——宁可让这一下重来，
+       也不能让发送键永久失效（这个故障真机上表现为「点发送没反应」，
+       访客会以为是自己网不好）。 */
+    if (busySince && Date.now() - busySince > 45000) {
+      busy = false;
+      el.input.disabled = false;
+    } else {
+      return;
+    }
+  }
   if (!text && !pendingImages.length) return;
 
   /* 一分钟内 6 次以上：Yumo 也会累。温和拦下，不删他打的字。 */
@@ -347,6 +359,7 @@ async function send() {
   }
 
   busy = true;
+  busySince = Date.now();
   el.input.disabled = true;
   setMood('thinking');
   el.springState.textContent = '正在感受你说的话…';
@@ -361,6 +374,11 @@ async function send() {
   let acc = '';
   let bubble = null;
   let revealed = false;
+  /* ⚠️ 必须声明在 try 之外：catch / finally 里都要用。
+     曾经写在 try 内 → finally 第一句就 ReferenceError →
+     后面的 busy=false 永远执行不到 → 发送键从此永久失效。
+     作用域这种事，编译器不会提醒，只有真机点不动才发现。 */
+  let pumpStop = false;
   const t0 = Date.now();
 
   const ensureBubble = () => {
@@ -382,7 +400,6 @@ async function send() {
       .catch(() => {});
 
     let streamErr = null;
-    let pumpStop = false;   // 打字机停止开关
     const streamDone = ai.stream(
       [{ role: 'system', content: sys }, ...history],
       {
@@ -486,10 +503,13 @@ async function send() {
       scrollThread();
     }
   } finally {
+    /* 顺序要紧：先把闸松开，再做收尾动作。
+       收尾里任何一步抛错都不该再让访客的发送键死掉——
+       这条规则是被上面那个 ReferenceError 咬出来的。 */
     pumpStop = true;
-    hideInsightPopup();
     busy = false;
     el.input.disabled = false;
+    try { hideInsightPopup(); } catch { /* 收尾失败也不影响可发送 */ }
     el.input.focus();
     setMood(currentMood());
     el.springState.textContent = '水很静。我在这里。';
