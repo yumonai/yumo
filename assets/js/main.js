@@ -19,7 +19,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.24';
+const YUMO_VERSION = 'v0.25';
 
 const el = {
   scene: $('#scene'),
@@ -751,7 +751,7 @@ function paintSettings() {
 
     <div class="card card--plain">
       <div class="card__label">Yumo 的存在方式</div>
-      ${rowToggle('深潜模式', '由 Yumo 带着你往下走，它会不断提问', 'deepMode')}
+      ${rowToggle('深潜模式', '由 Yumo 带着你往下走，问得更少、更深', 'deepMode')}
       ${rowToggle('自动提炼记忆与画像', '每次对话后，静默整理它对你的理解', 'autoDigest')}
     </div>
 
