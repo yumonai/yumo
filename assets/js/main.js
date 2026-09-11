@@ -19,7 +19,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.20';
+const YUMO_VERSION = 'v0.22';
 
 const el = {
   scene: $('#scene'),
@@ -416,7 +416,13 @@ async function send() {
   } catch (e) {
     feel.remove();
     if (e.name !== 'AbortError') {
-      const msg = e.message || '出错了。';
+      let msg = e.message || '出错了。';
+      /* 最后的安全网：如果他在说危险的话而所有通道都没能回应，
+         错误提示里必须带热线——这条信息不能因为断网而消失。 */
+      if (ai.isCrisis(String(text || ''))) {
+        msg += '\n\n如果你此刻有伤害自己的念头，请立刻拨打希望24热线 400-161-9995，' +
+          '紧急情况拨 120，或去找一个现实中的人陪你。这件事不该一个人扛。';
+      }
       store.pushMessage({ id: uid(), role: 'yumo', text: msg, t: Date.now(), system: true });
       paintThread();
       scrollThread();
