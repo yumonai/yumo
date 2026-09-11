@@ -275,6 +275,11 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   display:flex;justify-content:space-between;align-items:flex-start;
   padding:calc(var(--safe-t) + 20px) 20px 0;
 }
+/* 独立 PWA 全屏下灵动岛约 59px——safe-area 之外再加 34px 保底，
+   确保信件按钮与菜单整体落在灵动岛下方 */
+@supports (padding: env(safe-area-inset-top, 0px)) {
+  .spring__top{padding-top:calc(max(var(--safe-t), env(safe-area-inset-top, 0px)) + 34px)}
+}
 .spring__mark{
   font-family:var(--font-serif);font-size:12.5px;letter-spacing:.42em;text-indent:.42em;
   color:var(--mist-300);padding:9px 0 0 6px;
@@ -1227,14 +1232,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
     max-height .55s var(--ease-soft);
 }
 .letter-sheet.is-in .letter-paper{transform:translateY(0);opacity:1}
-/* 手机/竖屏：落定之后再缓缓放大到占满整屏 */
-@media (max-width:760px),(orientation:portrait){
-  .letter-sheet.is-open{padding:0;background:rgba(2,5,9,.96)}
-  .letter-sheet.is-open .letter-paper{
-    width:100vw;height:100dvh;max-height:none;border-radius:0;
-    padding:calc(var(--safe-t,0px) + 28px) 22px 30px;
-  }
-}
+/* 手机/竖屏：保持居中卡片形态，不再铺满整屏（v0.32 用户定稿） */
 .letter-close{
   position:absolute;top:10px;right:14px;width:30px;height:30px;
   border-radius:50%;border:1px solid var(--line);background:none;

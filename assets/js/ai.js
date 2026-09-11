@@ -304,24 +304,40 @@ async function streamVia(ch, messages, { onDelta, signal, temperature } = {}) {
   const dec = new TextDecoder('utf-8');
   let buf = '';
   let full = '';
+  let watchdog;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    const lines = buf.split('\n');
-    buf = lines.pop() || '';
-    for (const raw of lines) {
-      const line = raw.trim();
-      if (!line.startsWith('data:')) continue;
-      const payload = line.slice(5).trim();
-      if (payload === '[DONE]') continue;
-      try {
-        const json = JSON.parse(payload);
-        const piece = json.choices?.[0]?.delta?.content;
-        if (piece) { full += piece; onDelta?.(piece, full); }
-      } catch { /* 不完整的行，跳过 */ }
+  /* 移动网络下 SSE 连接经常拖着不断开——45 秒没有任何新数据就视为断流，
+     走通道切换/报错路径，绝不让访客的输入框被无限禁用。 */
+  try {
+    while (true) {
+      const chunk = await Promise.race([
+        reader.read(),
+        new Promise((res) => { watchdog = setTimeout(() => res({ stalled: true }), 45000); }),
+      ]);
+      clearTimeout(watchdog);
+      if (chunk.stalled) {
+        try { await reader.cancel(); } catch {}
+        throw new AIError('连接超时了。', 'network', 0);
+      }
+      const { done, value } = chunk;
+        if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice(5).trim();
+        if (payload === '[DONE]') continue;
+        try {
+          const json = JSON.parse(payload);
+          const piece = json.choices?.[0]?.delta?.content;
+          if (piece) { full += piece; onDelta?.(piece, full); }
+        } catch { /* 不完整的行，跳过 */ }
+      }
     }
+  } finally {
+    clearTimeout(watchdog);
   }
 
   /* 一个字都没说出来（思考型模型 token 用尽就会这样）。

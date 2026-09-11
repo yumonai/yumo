@@ -19,7 +19,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* 版本号：与提交版本对应（第二十版 = v0.20），「关于 YUMO」栏展示用 */
-const YUMO_VERSION = 'v0.31';
+const YUMO_VERSION = 'v0.32';
 
 const el = {
   scene: $('#scene'),
@@ -403,9 +403,41 @@ async function send() {
        节奏自适应——整段在 2.5–6 秒内匀速展开。 */
     let shown = 0;
     let streamSettled = false;
+    let committed = false;
     streamDone.then(() => { streamSettled = true; }, () => { streamSettled = true; });
+
+    /* 收尾：文字展示完就恢复输入——移动网络下流连接可能拖着不断开，
+       绝不让访客的输入框被无限禁用。 */
+    const commit = () => {
+      if (committed) return;
+      committed = true;
+      pumpStop = true;
+      ensureBubble().textContent = acc;
+      scrollThread();
+      feel.remove();
+      store.pushMessage({ id: uid(), role: 'yumo', text: acc || '……', t: Date.now() });
+      paintThread();
+      scrollThread();
+      store.bumpTurns();
+      el.input.disabled = false;
+      el.input.focus();
+      setMood(currentMood());
+      el.springState.textContent = '水很静。我在这里。';
+      // 后台提炼（不阻塞）
+      ai.distill().then((d) => {
+        if (d) {
+          setMood(currentMood());
+          const trail = store.get('profile').moodTrail || [];
+          if (trail.length) {
+            const v = trail[trail.length - 1].v;
+            el.springState.textContent = v < 30 ? '水有点重。我接着。' : v < 55 ? '水还算静。' : '感觉水亮了一点。';
+          }
+        }
+      });
+    };
+
     const pump = () => {
-      if (pumpStop) return;
+      if (pumpStop || committed) return;
       const total = acc.length;
       if (shown < total) {
         const span = Math.min(6000, Math.max(2500, total * 26));
@@ -413,39 +445,18 @@ async function send() {
         ensureBubble().textContent = acc.slice(0, Math.floor(shown));
         scrollThread();
       }
-      if (!(streamSettled && shown >= total)) setTimeout(pump, 170);
+      if (streamSettled && shown >= total) { commit(); return; }
+      setTimeout(pump, 170);
     };
     pump();
 
-    await streamDone;
+    /* 等流结束；但移动网络下连接可能拖着不断开——
+       文字已展开就先恢复输入，最长宽限 12 秒 */
+    await Promise.race([streamDone, sleep(12000)]);
     streamSettled = true;
-    if (streamErr) { pumpStop = true; throw streamErr; }
+    commit();
 
-    /* 等打字机把最后一段放完 */
-    await new Promise((res) => {
-      const w = () => { if (shown >= acc.length) return res(); setTimeout(w, 170); };
-      w();
-    });
-    ensureBubble().textContent = acc;
-    scrollThread();
-    feel.remove();
-    store.pushMessage({ id: uid(), role: 'yumo', text: acc || '……', t: Date.now() });
-    paintThread();
-    scrollThread();
-
-    store.bumpTurns();
-
-    // 后台提炼（不阻塞）
-    ai.distill().then((d) => {
-      if (d) {
-        setMood(currentMood());
-        const trail = store.get('profile').moodTrail || [];
-        if (trail.length) {
-          const v = trail[trail.length - 1].v;
-          el.springState.textContent = v < 30 ? '水有点重。我接着。' : v < 55 ? '水还算静。' : '感觉水亮了一点。';
-        }
-      }
-    });
+    if (streamErr) throw streamErr;
 
     // 每 6 轮写一页潮汐记
     if (store.get('profile').turns % 6 === 0) {
@@ -1133,10 +1144,15 @@ brandMark?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.reload(); }
 });
 
-/* 进首页时，两个角落各浮一个小提示，4 秒后自动消失 */
+/* 进首页时，两个角落各浮一个小提示——每个用户每天只提示一次，可见 3 秒 */
 let hintTimers = [];
 function greetHints() {
   hintTimers.forEach(clearTimeout); hintTimers = [];
+  const today = new Date().toISOString().slice(0, 10);
+  let lastDay = '';
+  try { lastDay = localStorage.getItem('yumo.hintDay') || ''; } catch {}
+  if (lastDay === today) return;          // 今天已经提示过了
+  try { localStorage.setItem('yumo.hintDay', today); } catch {}
   const a = $('#hint-brand'); const b = $('#hint-menu');
   if (!a || !b) return;
   [a, b].forEach((el) => { el.hidden = true; el.classList.remove('is-in'); });
@@ -1145,7 +1161,7 @@ function greetHints() {
   }, 1300));
   hintTimers.push(setTimeout(() => {
     [a, b].forEach((el) => { el.classList.remove('is-in'); setTimeout(() => { el.hidden = true; }, 700); });
-  }, 5300));   // 可见约 4 秒
+  }, 4300));   // 可见约 3 秒
 }
 
 $('#core')?.addEventListener('click', () => navigate('talk'));
