@@ -105,6 +105,13 @@ export async function ensureToday({ force = false } = {}) {
     const item = pickItem(today());
     if (!item) throw new Error('内容池还没准备好。');
 
+    /* 配图与写信并行预加载——AI 写完的几秒里，图早就位，展开时顺滑现身 */
+    if (item.img) {
+      const im = new Image();
+      im.src = item.img;
+      im.decode?.().catch(() => {});
+    }
+
     const letter = await ai.writeLetter({
       text: item.text,
       author: item.author,
