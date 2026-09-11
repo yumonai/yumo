@@ -234,6 +234,7 @@ export const store = {
 
   wipe() {
     for (const k of Object.keys(DEFAULTS)) localStorage.removeItem(NS + k);
+    localStorage.removeItem(NS + 'anon');   // 匿名身份也一起清——清空后就是全新访客
     location.reload();
   },
 

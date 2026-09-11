@@ -96,6 +96,7 @@ body{
   line-height:1.75;
   letter-spacing:.005em;
   -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
   -moz-osx-font-smoothing:grayscale;
   overflow:hidden;
   overscroll-behavior:none;
@@ -210,7 +211,7 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
 .threshold__line{
   font-family:var(--font-serif);
   font-size:clamp(23px,6.4vw,34px);
-  line-height:1.92;letter-spacing:.10em;
+  line-height:1.92;letter-spacing:.10em;text-indent:.10em;
   color:var(--mist-050);
   margin:0 0 18px;
   animation:rise-in 2.4s .3s var(--ease-soft) both;
@@ -278,6 +279,10 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   font-family:var(--font-serif);font-size:12.5px;letter-spacing:.42em;text-indent:.42em;
   color:var(--mist-300);padding:9px 0 0 6px;
   animation:rise-in 1.8s var(--ease-soft) both;
+}
+/* 信件按钮相对整条头部绝对居中——flex 两端布局里左右元素不等宽时会挤偏 */
+.spring__top #btn-letter{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
 }
 .orb-btn{
   display:inline-flex;align-items:center;gap:8px;

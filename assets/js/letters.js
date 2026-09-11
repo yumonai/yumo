@@ -51,19 +51,32 @@ function hash(str) {
 }
 
 /**
+ * 挑今天这段的种子。
+ * · 登录用户：用账号 user.id——稳定身份，令牌旋转/换设备都不变（同人同日同信）。
+ * · 匿名用户：用 yumo.v1.anon——「清空这片水」会连它一起清掉，
+ *   清空后就是全新的人，拿到全新的信。
+ */
+function pickSeed() {
+  try {
+    const acc = JSON.parse(localStorage.getItem('yumo.v1.account') || 'null');
+    if (acc?.user?.id) return 'u:' + acc.user.id;
+  } catch {}
+  let anon = '';
+  try { anon = localStorage.getItem('yumo.v1.anon') || ''; } catch {}
+  if (!anon) {
+    anon = 'a-' + Math.random().toString(36).slice(2, 10);
+    try { localStorage.setItem('yumo.v1.anon', anon); } catch {}
+  }
+  return 'a:' + anon;
+}
+
+/**
  * 挑今天这段。同一个用户同一天永远同一段；不同用户、不同日子会不同。
- * 以用户的 userId（登录）或浏览器里的匿名 id 为种子。
+ * 先散列再取模，让相邻日子不会拿到相邻段落。
  */
 function pickItem(dateStr) {
   if (!pool?.length) return null;
-  let uid = '';
-  try { uid = localStorage.getItem('yumo.v1.account') || localStorage.getItem('yumo.v1.anon') || ''; } catch {}
-  if (!uid) {
-    uid = 'anon-' + Math.random().toString(36).slice(2, 10);
-    try { localStorage.setItem('yumo.v1.anon', uid); } catch {}
-  }
-  // 先散列再取模，让相邻日子不会拿到相邻段落
-  const idx = hash(uid + '|' + dateStr) % pool.length;
+  const idx = hash(pickSeed() + '|' + dateStr) % pool.length;
   return pool[idx];
 }
 
