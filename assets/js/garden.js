@@ -130,13 +130,15 @@ function tabProfile() {
     </div>
 
     ${p.traits?.length ? `<div class="card">
-      <div class="card__label">你身上的质地</div>
-      <div class="chips">${p.traits.map((t) => `<span class="chip chip--tide">${esc(t)}</span>`).join('')}</div>
+      <div class="card__label">你身上的质地<span class="chip-hint">点一下，看它是从哪句话里长出来的</span></div>
+      <div class="chips">${p.traits.map((t) => `<button class="chip chip--tide" data-ev="${esc(t)}" type="button">${esc(t)}</button>`).join('')}</div>
+      <div class="ev-strip" hidden></div>
     </div>` : ''}
 
     ${p.themes?.length ? `<div class="card">
-      <div class="card__label">你反复浮上来的事</div>
-      <div class="chips">${p.themes.map((t) => `<span class="chip chip--big">${esc(t)}</span>`).join('')}</div>
+      <div class="card__label">你反复浮上来的事<span class="chip-hint">点一下，看证据</span></div>
+      <div class="chips">${p.traits ? p.themes.map((t) => `<button class="chip chip--big" data-ev="${esc(t)}" type="button">${esc(t)}</button>`).join('') : ''}</div>
+      <div class="ev-strip" hidden></div>
     </div>` : ''}
 
     ${p.figures?.length ? `<div class="card">
@@ -159,16 +161,21 @@ function tabMemory() {
   if (!list.length) {
     return `<div class="card"><p class="empty-line">Yumo 还什么都没记住。<br />当你提到某个人、某件事、某个决定，它会悄悄收起来，下次见面时还给你。</p></div>`;
   }
-  return `<div class="card">
-    <div class="card__label">Yumo 记得的 ${list.length} 件事</div>
-    ${list.map((m) => `
+  const now = Date.now();
+  const recent = list.filter((m) => now - m.t < 14 * 86400000);
+  const older = list.filter((m) => now - m.t >= 14 * 86400000);
+  const row = (m) => `
       <div class="row-item">
         <div class="row-item__time">${fmt(m.t)}</div>
         <div class="row-item__body">
           <p>${esc(m.text)}</p>
         </div>
         <button class="msg__act" data-forget="${m.id}" type="button">忘掉</button>
-      </div>`).join('')}
+      </div>`;
+  return `<div class="card">
+    <div class="card__label">Yumo 记得的 ${list.length} 件事</div>
+    ${recent.length ? `<p class="group-label">这 段 时 间</p>${recent.map(row).join('')}` : ''}
+    ${older.length ? `<p class="group-label">更 早 的 水 痕</p>${older.map(row).join('')}` : ''}
   </div>
   <p class="note-quiet">这些都是从你的话里提炼的。点「忘掉」，它就真的不在了。</p>`;
 }
@@ -198,8 +205,8 @@ function tabLog() {
     return `<div class="card"><p class="empty-line">还没有潮汐记。<br />一段对话结束后，Yumo 会为它写一页。<br />你需要先在「器皿」里连上它的思维。</p></div>`;
   }
   return list.map((j) => `
-    <div class="card">
-      <div class="card__label">${fmtFull(j.t)}</div>
+    <div class="card" data-jr="${j.t}" role="button" tabindex="0" title="翻开这一页">
+      <div class="card__label">${fmtFull(j.t)}${j.lastRead ? `<span class="reread">· 上次翻开 ${fmt(j.lastRead)}</span>` : '<span class="reread reread--new">· 还没翻开过</span>'}</div>
       <div class="card__title">${esc(j.title)}</div>
       <p style="font-family:var(--font-serif);line-height:2.1;letter-spacing:.04em">${esc(j.body)}</p>
     </div>`).join('');
@@ -259,6 +266,27 @@ export function renderGarden(root, { whisper, refresh }) {
         store.put('echoes', store.get('echoes').filter((x) => x.id !== b.dataset.drop));
         whisper('让它漂走吧。');
         paint();
+      });
+    });
+    // 质地/事：点开证据（当时的那句原话）
+    const evMap = store.get('profile').evidence || {};
+    root.querySelectorAll('[data-ev]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const strip = b.closest('.card')?.querySelector('.ev-strip');
+        if (!strip) return;
+        const ev = evMap[b.dataset.ev];
+        strip.hidden = false;
+        strip.innerHTML = ev
+          ? `当时的原话：「${esc(ev.text)}」<small>· ${fmt(ev.t)}</small>`
+          : '这个判断来自不止一次对话，原话已经沉在水底了。';
+      });
+    });
+    // 潮汐记：点卡片 = 翻开，记下重读时间
+    root.querySelectorAll('[data-jr]').forEach((cardEl) => {
+      cardEl.addEventListener('click', () => {
+        const t = Number(cardEl.dataset.jr);
+        store.put('journals', store.get('journals').map((x) => (x.t === t ? { ...x, lastRead: Date.now() } : x)));
+        cardEl.querySelector('.reread')?.replaceWith(Object.assign(document.createElement('span'), { className: 'reread', textContent: '· 刚刚翻开了' }));
       });
     });
   };

@@ -1503,8 +1503,9 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   transition:opacity .7s var(--ease-soft),transform .7s var(--ease-soft);
 }
 .hint-pop.is-in{opacity:1;transform:none}
-.hint-pop--brand{left:8px;bottom:calc(100% + 4px)}
-.hint-pop--menu{right:0;bottom:calc(100% + 6px)}
+/* 定位在头部下方（头部贴着屏幕顶，往上弹会弹到屏幕外） */
+.hint-pop--brand{left:6px;top:calc(100% + 8px)}
+.hint-pop--menu{right:0;top:calc(100% + 8px)}
 
 /* ── 在心里存下 ─────────────────────────────── */
 .letter-keep{
@@ -1550,3 +1551,23 @@ h1,h2,h3,h4{margin:0;font-weight:400;font-family:var(--font-serif)}
   opacity:0 !important;
   transition:transform 1.5s cubic-bezier(.5,.06,.68,.4),opacity 1.4s var(--ease-soft) !important;
 }
+
+/* ── 花园 · 证据与分组 ───────────────────────── */
+.chip-hint{
+  display:block;margin-top:3px;font-size:9.5px;letter-spacing:.08em;
+  color:var(--mist-400);font-weight:400;
+}
+button.chip{cursor:pointer;transition:border-color var(--dur-fast) var(--ease-soft),color var(--dur-fast) var(--ease-soft)}
+button.chip:hover{border-color:var(--tide-400);color:var(--tide-100)}
+.ev-strip{
+  margin-top:11px;padding:10px 13px;border-left:2px solid var(--tide-300);
+  background:rgba(210,236,250,.05);border-radius:0 var(--r-sm) var(--r-sm) 0;
+  font-size:11.5px;line-height:1.9;color:var(--mist-100);
+}
+.ev-strip small{display:block;margin-top:4px;font-size:9.5px;letter-spacing:.08em;color:var(--mist-400)}
+.group-label{
+  margin:4px 0 10px;font-size:10px;letter-spacing:.3em;color:var(--mist-400);
+}
+.reread{font-size:9.5px;letter-spacing:.08em;color:var(--mist-400)}
+.reread--new{color:var(--tide-200)}
+[data-jr]{cursor:pointer}

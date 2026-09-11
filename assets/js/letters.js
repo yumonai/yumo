@@ -100,6 +100,7 @@ export async function ensureToday({ force = false } = {}) {
       theme: item.theme,
       doi: item.doi,
       profile: store.get('profile'),
+      echoes: store.get('echoes').slice(-2).map((e) => e.text),
     });
 
     const record = {

@@ -123,15 +123,18 @@ export const CRISIS_DIRECTIVE = `【系统提示 · 最高优先级 · 本轮必
 const DISTILL_PROMPT = `你是 Yumo 内在的一层觉知，负责在对话结束后整理你听到的东西。
 请阅读这段对话，然后以 JSON 格式输出你的整理结果。只输出 JSON，不要任何其他文字。
 
-字段说明：
+字段说明（宁少勿滥——攒了一堆琐碎的东西，比什么都不记更糟）：
 - mood: 整数 0–100，代表对方此刻的情绪状态。0 = 极其沉重低落，50 = 平静，100 = 明亮轻盈。只根据对话判断。
-- memory: 字符串。如果这段对话里有任何「值得在下次见面时记起来」的事实（他的处境、经历、在乎的人、正在做的决定、身体或睡眠状况等），用一句第三人称的话写下来，不超过 40 字，例如「他下周要去见三年没见的父亲」。如果没有值得记的，输出空字符串。
-- echo: 字符串。如果对方说了一句本身很有力量、值得被他自己收藏的话（原话摘录，不改写），就摘出来，不超过 30 字。没有就输出空字符串。
-- essence: 字符串。用一句话（不超过 30 字）描述「这个人是谁」，像水底看上来的一道轮廓。信息不足就输出空字符串。
-- traits: 字符串数组。对方表现出的性格特质，2–5 个，每个 2–4 字，如「敏感」「自我要求高」。
-- themes: 字符串数组。反复出现的主题，2–4 个，每个 2–6 字，如「和母亲的关系」「职业选择」。
-- figures: 字符串数组。他提到的重要的人（关系+称呼即可，不要真名），如「父亲」「大学同学」。没有就空数组。
-- note: 字符串。一句只写给你自己看的观察，不超过 30 字，关于你接下来该怎么陪他。
+- memory: 只写「一个月后仍然重要」的事——他的长期处境、关系、正在做的决定、健康与睡眠的长期状况。
+  日常琐事一律不写：吃了什么、天气、今天的小情绪、一次性的抱怨、随口一句的喜好。
+  用第三人称、不超过 30 字，例如「他下周要去见三年没见的父亲」。没有就空字符串。
+- echo: 只有当一句话**三个月后重读仍然立得住**才摘（原话，不改写），不超过 25 字。
+  寒暄、感叹、普通情绪表达一律不算。没有就空字符串。
+- essence: 一句话（不超过 25 字）说清「这个人是谁」，像水底看上来的一道轮廓。信息不足就空字符串。
+- traits: 2–4 个，每个 2–3 字，只留最有辨识度的（如「敏感」「自持」），不要泛泛的形容词。
+- themes: 2–3 个，每个 4–6 字，必须是具体的事（如「和母亲的关系」「要不要辞职」），不要「压力」「迷茫」这类空词。
+- figures: 重要的人，关系+称呼即可，不要真名，如「父亲」「大学同学」。没有就空数组。
+- note: 一句只写给你自己看的观察，不超过 25 字，关于你接下来该怎么陪他。
 
 JSON 结构：
 {"mood":50,"memory":"","echo":"","essence":"","traits":[],"themes":[],"figures":[],"note":""}`;
@@ -560,18 +563,40 @@ export async function distill(force = false) {
     if (typeof data.mood === 'number' && Number.isFinite(data.mood)) {
       store.tide(Math.max(0, Math.min(100, data.mood)));
     }
-    // 记忆
-    if (data.memory && String(data.memory).trim().length > 3) {
-      const text = String(data.memory).trim();
+    // 记忆：代码级门槛——太短的、明显的日常琐事，一律不入库
+    if (data.memory) {
+      const text = String(data.memory).trim().slice(0, 40);
+      const trivial = /^(他|她)?(今天|刚才|刚刚|现在|最近)?[^，。]{0,6}(吃了|喝|天气|下雨|睡得很|心情不错|有点累)/.test(text);
+      const tooShort = text.replace(/[他她。，、]/g, '').length < 6;
       const exists = store.get('memories').some((m) => m.text === text);
-      if (!exists) store.pushMemory(text, 'moment');
+      if (!trivial && !tooShort && !exists) store.pushMemory(text, 'moment');
     }
-    // 回声（对方自己的金句）
-    if (data.echo && String(data.echo).trim().length > 3) {
-      store.pushEcho(String(data.echo).trim(), 'me');
+    // 回声：至少 8 字才算金句
+    if (data.echo) {
+      const e = String(data.echo).trim().slice(0, 30);
+      if (e.replace(/[。，、？！\s]/g, '').length >= 8) store.pushEcho(e, 'me');
     }
-    // 画像
+    // 画像（先记下旧 chips，合并后对比出新长出来的，钉上他的原话作证据）
+    const beforeChips = {
+      traits: new Set(store.get('profile').traits || []),
+      themes: new Set(store.get('profile').themes || []),
+    };
     store.absorbProfile(data);
+    const pNow = store.get('profile');
+    const userLine = (recent.find((m) => m.role === 'me')?.text || '').slice(0, 60);
+    if (userLine) {
+      const ev = pNow.evidence || {};
+      let added = false;
+      for (const list of ['traits', 'themes']) {
+        for (const chip of pNow[list] || []) {
+          if (!beforeChips[list].has(chip) && !ev[chip]) {
+            ev[chip] = { text: userLine, t: Date.now() };
+            added = true;
+          }
+        }
+      }
+      if (added) store.set('profile', { evidence: ev });
+    }
 
     if (data.note) store.set('profile', { note: String(data.note).slice(0, 60) });
 
@@ -722,6 +747,7 @@ export async function writeLetter(p) {
   if (prof.traits?.length) bits.push(`他的特质：${prof.traits.join('、')}`);
   if (prof.themes?.length) bits.push(`他最近反复浮上来的事：${prof.themes.join('、')}`);
   if (prof.seasons?.length) bits.push(`他正处在：${prof.seasons.join('、')}`);
+  if (p.echoes?.length) bits.push(`他曾经在对话里说过、自己也珍视的话：「${p.echoes.join('」「')}」——如果与今天的文字自然相连，可以在信里轻轻呼应它；牵强就放过。`);
   if (prof.turns) bits.push(`你们已经聊过 ${prof.turns} 轮。`);
   const profileText = bits.length
     ? `【你对这个人的了解】\n${bits.join('\n')}\n\n解读时用得上这些——但只用于决定「怎么说」，不要直接复述给他听，也不要显得你在翻档案。`
