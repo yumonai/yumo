@@ -56,24 +56,6 @@
       "credit": "CC BY-NC-ND 3.0（Wikimedia Commons）"
     },
     {
-      "id": "swan2",
-      "title": "Swan Lake, Op. 20 – Act II (Extract)",
-      "sub": "天鹅湖 · 第二幕选段",
-      "composer": "柴可夫斯基",
-      "file": "assets/music/swan2.m4a",
-      "cover": "assets/music/covers/tchaikovsky.jpg",
-      "credit": "Ballet Francaise Symphony Orchestra · 公版（Wikimedia Commons）"
-    },
-    {
-      "id": "swan4",
-      "title": "Swan Lake, Op. 20 – Act IV: No. 29 Finale",
-      "sub": "天鹅湖 · 第四幕 终曲",
-      "composer": "柴可夫斯基",
-      "file": "assets/music/swan4.m4a",
-      "cover": "assets/music/covers/tchaikovsky.jpg",
-      "credit": "Antal Doráti 指挥 · 公版（Wikimedia Commons）"
-    },
-    {
       "id": "winter1",
       "title": "The Four Seasons, RV 297 \"L'inverno\" – I. Allegro non molto",
       "sub": "四季 · 冬 第一乐章",
@@ -99,6 +81,24 @@
       "file": "assets/music/winter3.m4a",
       "cover": "assets/music/covers/vivaldi.jpg",
       "credit": "小提琴 John Harrison · CC BY-SA 4.0（Wikimedia Commons）"
+    },
+    {
+      "id": "swan13",
+      "title": "Swan Lake, Op. 20 – No. 13 Danses des cygnes (V)",
+      "sub": "天鹅湖 · 第十三曲 天鹅之舞",
+      "composer": "柴可夫斯基",
+      "file": "assets/music/swan13.m4a",
+      "cover": "assets/music/covers/tchaikovsky.jpg",
+      "credit": "公版录音（Wikimedia Commons）"
+    },
+    {
+      "id": "swan29",
+      "title": "Swan Lake, Op. 20 – Act IV: No. 29 Scene finale",
+      "sub": "天鹅湖 · 第四幕 终曲（天鹅飞翔）",
+      "composer": "柴可夫斯基",
+      "file": "assets/music/swan29.m4a",
+      "cover": "assets/music/covers/tchaikovsky.jpg",
+      "credit": "公版录音（Wikimedia Commons）"
     }
   ]
 }

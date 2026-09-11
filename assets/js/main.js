@@ -308,10 +308,10 @@ async function send() {
   if (busy) return;
   if (!text && !pendingImages.length) return;
 
-  /* 一分钟内 10 次以上：Yumo 也会累。温和拦下，不删他打的字。 */
+  /* 一分钟内 6 次以上：Yumo 也会累。温和拦下，不删他打的字。 */
   const nowMs = Date.now();
   while (sendStamps.length && nowMs - sendStamps[0] > 60000) sendStamps.shift();
-  if (sendStamps.length >= 10) {
+  if (sendStamps.length >= 6) {
     if (nowMs - rateLastNote > 30000) {
       rateLastNote = nowMs;
       whisper('Yumo 有点累了。刚刚说了太多话，让这片水静一会儿，过几分钟再聊吧。', 6500);
