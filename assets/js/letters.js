@@ -11,8 +11,8 @@
    · 用户画像为空时，Yumo 用初见的语气写，绝不硬编一个画像。
    ══════════════════════════════════════════════ */
 
-import { store } from './store.js?v=50';
-import * as ai from './ai.js?v=50';
+import { store } from './store.js?v=51';
+import * as ai from './ai.js?v=51';
 
 let pool = null;          // 内容池
 let loading = null;       // 防止并发重复加载
