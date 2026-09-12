@@ -6,8 +6,8 @@
        下一次见面时，它已经记得你了。
    ══════════════════════════════════════════════ */
 
-import { store } from './store.js?v=54';
-import { DEPLOY } from './config.js?v=54';
+import { store } from './store.js?v=55';
+import { DEPLOY } from './config.js?v=55';
 
 /* ── 1. 人设 ─────────────────────────────────── */
 
