@@ -21,8 +21,8 @@ export const DEPLOY = {
      网络不通），就自动换下一条，访客察觉不到。
 
      当前顺序：智谱 glm-4-flash-250414（主力，免费且稳定，1~3 秒）
-             → Agnes agnes-3.0-flash（免费，质量好，但 5~27 秒）
              → 硅基流动 → 讯飞星火。
+     （Agnes 已于 2026-09-12 整条撤下，理由见下。）
      哪一条的 apiKey 是空的，就跳过哪一条。
      想让某个模型当主力，把它排到前面就行。
 
@@ -43,20 +43,15 @@ export const DEPLOY = {
       noThink: true,                    // 思考型模型会返回空正文，必须显式关掉
       maxTokens: 1024,                  // ⚠️ 智谱视觉模型只收 1~1024，超出直接 1210 报错
     },
-    /* Agnes（agnes-3.0-flash）—— 第二跳。官方称永久免费、无使用上限。
-       质量实测很好：问题具体、贴身体、没有客服腔，「求指引」那轮的表现
-       甚至好于 glm（「先停下来，看看你身后，有什么是现在托着你的？」）。
-       ⚠️ 慢：单次 5~27 秒（glm 只要 1~3 秒），且免费池有限流——
-          所以排在 glm 之后做第二跳；main.js 里已为慢通道放宽了等待。
-       端点必须用 apihub.agnes-ai.cn（api.agnes-ai.cn 对这个 Key 返回 401）。 */
-    {
-      name: 'agnes',
-      baseUrl: 'https://apihub.agnes-ai.cn/v1',
-      model: 'agnes-3.0-flash',
-      apiKey: 'sk-giXCH8hR9hJ4cje4DurGztO7H0mp3PIYvrCv0q7VQyiApfGQ',
-      maxTokens: 1024,
-    },
-
+    /* ⚠️ Agnes（agnes-3.0-flash）—— 已于 2026-09-12 按你的判断整条撤下。
+       撤下的原因，记在这里避免以后手痒又加回来：
+         · 你实测：延迟高（单次 5~27 秒，glm 只有 1~3 秒）、回复效果其实不好；
+         · Agnes 2.5 系列两条路都走不通——2.5-pro / 2.5-pro-alpha 返回 403
+           「Insufficient user quota」（余额 $0.000000），不是完全免费，要付费；
+           2.5-flash / 2.0-flash 免费但**强制打开思考且关不掉**：400 tokens
+           全被 reasoning 吃掉、正文 0 字，延迟 3.9~8.2 秒，连调第二次直接失败。
+       结论：Agnes 全家现在只剩 3.0-flash 能用，而它又慢又不好，不值得占位。
+       （旧 key 已不再出现在配置里，如仍在后台生效建议去删掉。） */
 
     /* 火山引擎豆包 —— 每天 200 万 tokens 自动刷新，单日额度最大
        注意：model 要填控制台里的「接入点 ID」，形如 ep-2026xxxx */

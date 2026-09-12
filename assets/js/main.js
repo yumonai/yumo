@@ -2,17 +2,17 @@
    main.js —— Yumo 的呼吸
    ══════════════════════════════════════════════ */
 
-import { store, uid, clamp } from './store.js?v=55';
-import { DeepSea } from './scene.js?v=55';
-import { Soundscape, ICONS } from './ambient.js?v=55';
-import { Listener } from './voice.js?v=55';
-import { renderGarden } from './garden.js?v=55';
-import { renderMirror } from './mirror.js?v=55';
-import { DEPLOY, hasDeployKey } from './config.js?v=55';
-import * as ai from './ai.js?v=55';
-import * as account from './account.js?v=55';
-import * as letters from './letters.js?v=55';
-import * as player from './player.js?v=55';
+import { store, uid, clamp } from './store.js?v=56';
+import { DeepSea } from './scene.js?v=56';
+import { Soundscape, ICONS } from './ambient.js?v=56';
+import { Listener } from './voice.js?v=56';
+import { renderGarden } from './garden.js?v=56';
+import { renderMirror } from './mirror.js?v=56';
+import { DEPLOY, hasDeployKey } from './config.js?v=56';
+import * as ai from './ai.js?v=56';
+import * as account from './account.js?v=56';
+import * as letters from './letters.js?v=56';
+import * as player from './player.js?v=56';
 
 /* ── DOM ── */
 const $ = (s, r = document) => r.querySelector(s);
@@ -516,7 +516,7 @@ async function send() {
     /* 等流结束；但移动网络下连接可能拖着不断开——
        文字已展开就先恢复输入，最长宽限 12 秒 */
     await Promise.race([streamDone, sleep(12000)]);
-    /* 慢通道兜底：Agnes 这类免费池首字节要 5~15 秒。
+    /* 慢通道兜底：硅基流动、星火这类免费池首字节可能要 5~15 秒。
        12 秒时如果正文还很短，再多等 10 秒——否则会把人家的话说一半。 */
     if (!streamErr && acc.length < 20) {
       await Promise.race([streamDone, sleep(10000)]);

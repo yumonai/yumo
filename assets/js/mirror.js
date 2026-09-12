@@ -7,9 +7,9 @@
    两副牌会一起交给 Yumo，由它合成一句整体的话。
    ══════════════════════════════════════════════ */
 
-import { store, uid } from './store.js?v=55';
-import { interpretCards, isConnected } from './ai.js?v=55';
-import { TAROT, tarotImage, tarotTag } from './tarot.js?v=55';
+import { store, uid } from './store.js?v=56';
+import { interpretCards, isConnected } from './ai.js?v=56';
+import { TAROT, tarotImage, tarotTag } from './tarot.js?v=56';
 
 /* ── 抽象符号库：每个函数返回一段 SVG 内部标记 ── */
 const G = {
